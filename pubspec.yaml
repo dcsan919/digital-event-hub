@@ -49,7 +49,9 @@ dependencies:
   syncfusion_flutter_pdf: ^26.2.5
   printing: ^5.13.1
   pdf: ^3.11.0
-  
+  google_fonts: ^6.2.1
+  dio: ^5.5.0+1
+  icons_plus: ^5.0.0
   
   
   
