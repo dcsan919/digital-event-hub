@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../screens/compras_screen.dart';
 import '../screens/notificaciones_screen.dart';
 import '../screens/map_screen.dart';
+import '../screens/list_events.dart';
 
 class NabInf extends StatefulWidget {
   const NabInf({super.key});
@@ -14,7 +15,7 @@ class _NabInfState extends State<NabInf> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
-    Text('Eventos'),
+    ListEvent(),
     ComprasScreen(),
     MapScreen(),
     NotificacionesScreen(),
