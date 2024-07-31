@@ -1,3 +1,4 @@
+import 'package:deh_client/UI/screens/list_events.dart';
 import 'package:flutter/material.dart';
 
 class NabInf extends StatefulWidget {
@@ -10,8 +11,8 @@ class NabInf extends StatefulWidget {
 class _NabInfState extends State<NabInf> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text('Eventos'),
+  static List<Widget> _widgetOptions = <Widget>[
+    ListEvent(),
     Text('Compras'),
     Text("Mapa"),
     Text("Notificaciones"),
