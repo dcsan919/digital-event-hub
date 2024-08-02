@@ -2,7 +2,7 @@ import 'package:deh_client/UI/screens/list_events.dart';
 import 'package:flutter/material.dart';
 
 class NabInf extends StatefulWidget {
-  const NabInf({super.key});
+  const NabInf({super.key, required token});
 
   @override
   State<NabInf> createState() => _NabInfState();
