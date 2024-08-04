@@ -5,7 +5,7 @@ import '../screens/map_screen.dart';
 import '../screens/list_events.dart';
 
 class NabInf extends StatefulWidget {
-  const NabInf({super.key});
+  const NabInf({super.key, required token});
 
   @override
   State<NabInf> createState() => _NabInfState();
