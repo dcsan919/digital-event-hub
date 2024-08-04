@@ -51,7 +51,7 @@ class DetallesEvento {
       ubicacion: json['ubicacion'] as String?,
       maxPer: json['max_per'] as int?,
       tipo_evento: json['tipo_evento'] as String?,
-      categoria_nombre: json['categoria_nombre'] as String?,
+      categoria_nombre: json['categoria'] as String?,
       organizador_nombre: json['organizador_nombre'] as String?,
       imagen_url: json['imagen_url'] as String?,
     );

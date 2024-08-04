@@ -104,6 +104,11 @@ class _ListEventState extends State<ListEvent> {
       _selectedTipoEvento = tipoEvento;
       _fetchFilteredEvents(
           _selectedCategoria, _selectedTipoEvento, _selectedHora);
+      if (initialCategoria == null &&
+          _selectedHora == null &&
+          _selectedTipoEvento == null) {
+        _fetchEvents();
+      }
     });
   }
 
@@ -376,7 +381,7 @@ Widget _buildEventsList(List<ListEvents> events) {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    DetallesEventos(eventoId: event.evento_id!),
+                                    DetallesEventos(eventoId: event.evento_id!, userId: event.evento_id!,),
                               ),
                             );
                           },
