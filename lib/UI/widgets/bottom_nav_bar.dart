@@ -1,5 +1,8 @@
-import 'package:deh_client/UI/screens/list_events.dart';
 import 'package:flutter/material.dart';
+import '../screens/compras_screen.dart';
+import '../screens/notificaciones_screen.dart';
+import '../screens/map_screen.dart';
+import '../screens/list_events.dart';
 
 class NabInf extends StatefulWidget {
   const NabInf({super.key, required token});
@@ -11,11 +14,11 @@ class NabInf extends StatefulWidget {
 class _NabInfState extends State<NabInf> {
   int _selectedIndex = 0;
 
-  static List<Widget> _widgetOptions = <Widget>[
+  final List<Widget> _widgetOptions = <Widget>[
     ListEvent(),
-    Text('Compras'),
-    Text("Mapa"),
-    Text("Notificaciones"),
+    ComprasScreen(),
+    MapScreen(),
+    NotificacionesScreen(),
   ];
 
   void _onItemTapped(int index) {
