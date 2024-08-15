@@ -91,7 +91,7 @@ void showFilterDialog(
                         _tipoEventoController.text = newValue ?? '';
                       });
                     },
-                    items: <String>['Público', 'Privado']
+                    items: <String>['Publico', 'Privado']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,

@@ -33,12 +33,61 @@ class _ComentariosState extends State<Comentarios> {
   }
 
   @override
+  void dispose() {
+    _comentarioController.dispose();
+    super.dispose();
+  }
+
+  void _submitData(BuildContext dialogContext) async {
+    if (_comentarioController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El comentario no puede estar vacío')),
+      );
+      return;
+    }
+    try {
+      int eventoId = widget.eventoId;
+      int userId = widget.userId;
+      String comentario = _comentarioController.text;
+      DateTime fecha = DateTime.now();
+
+      Comentario newComentario = Comentario(
+        eventoId: eventoId,
+        usuarioId: userId,
+        comentario: comentario,
+        fecha: fecha,
+      );
+
+      print(
+          "comentario: $comentario, fecha: $fecha, evento: $eventoId, usuario: $userId");
+
+      await _comentariosRepository.postComentary(
+          eventoId, userId, newComentario);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comentario agregado con éxito')),
+      );
+
+      _comentarioController.clear();
+      print('Cerrando modal');
+      Navigator.pop(dialogContext);
+      print('Modal cerrado');
+      _fetchComentarios();
+      print('Comentarios actualizados');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agregar comentario: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
             child: Column(
               children: [
                 Row(
@@ -64,7 +113,7 @@ class _ComentariosState extends State<Comentarios> {
                         child: Row(
                           children: [
                             Text(
-                              'Agregar Comenatario',
+                              'Agregar',
                               style:
                                   GoogleFonts.montserrat(color: Colors.white),
                             ),
@@ -96,7 +145,7 @@ class _ComentariosState extends State<Comentarios> {
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return noEvents();
               } else {
-                return _buildComentariosList(snapshot.data!);
+                return _buildComentariosList(snapshot.data! ?? []);
               }
             },
           ),
@@ -105,118 +154,85 @@ class _ComentariosState extends State<Comentarios> {
     );
   }
 
-  void disponse() {
-    _comentarioController.dispose();
-    super.dispose();
-  }
-
-  void _submitData() async {
-    if (_comentarioController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('El comentario no puede estar vacío')),
-      );
-      return;
-    }
-    try {
-      int eventoId = widget.eventoId;
-      int userId = widget.userId;
-      String comentario = _comentarioController.text;
-      DateTime fecha = DateTime.now();
-
-      Comentario newComentario = Comentario(
-        comentario: comentario,
-        fecha: fecha,
-      );
-
-      await _comentariosRepository.postComentary(
-          eventoId, userId, newComentario);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Comentario agregado con éxito')),
-      );
-
-      _comentarioController.clear();
-      Navigator.pop(context);
-      _fetchComentarios();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar comentario: $e')),
-      );
-    }
-  }
-
   void _addComentario(BuildContext context) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-            height: MediaQuery.of(context).size.height * 0.5,
-            width: MediaQuery.of(context).size.width * 1,
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                children: [
-                  SizedBox(height: 15),
-                  Text(
-                    'Agrega un comentario a este evento',
-                    style: GoogleFonts.montserrat(fontSize: 20),
-                  ),
-                  SizedBox(height: 15),
-                  TextField(
-                    controller: _comentarioController,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    minLines: 6,
-                    decoration: InputDecoration(
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Colors.green, width: 1),
-                        ),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        hintText: 'Escribe un comentario...'),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return AlertDialog(
+            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            content: Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
                     children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          _submitData();
-                          print(_submitData);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          side: BorderSide(color: Colors.black, width: 0.5),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 5),
-                        ),
-                        child: Text(
-                          'Agregar',
-                          style: GoogleFonts.montserrat(color: Colors.white),
-                        ),
+                      SizedBox(height: 10),
+                      Text(
+                        'Agrega un comentario a este evento',
+                        style: GoogleFonts.montserrat(fontSize: 20),
                       ),
-                      SizedBox(width: 10),
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          side: BorderSide(color: Colors.black, width: 0.5),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 5),
-                        ),
-                        child: Text(
-                          'Cancelar',
-                          style: GoogleFonts.montserrat(color: Colors.white),
-                        ),
+                      SizedBox(height: 15),
+                      TextField(
+                        controller: _comentarioController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        minLines: 6,
+                        decoration: InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide:
+                                  BorderSide(color: Colors.green, width: 1),
+                            ),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15)),
+                            hintText: 'Escribe un comentario...'),
+                      ),
+                      SizedBox(height: 15),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              side: BorderSide(color: Colors.black, width: 0.5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 5),
+                            ),
+                            child: Text(
+                              'Cancelar',
+                              style:
+                                  GoogleFonts.montserrat(color: Colors.white),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          OutlinedButton(
+                            onPressed: () {
+                              _submitData(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              side: BorderSide(color: Colors.black, width: 0.5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 5),
+                            ),
+                            child: Text(
+                              'Agregar',
+                              style:
+                                  GoogleFonts.montserrat(color: Colors.white),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ));
+                )),
+          );
+        });
       },
     );
   }
@@ -246,10 +262,10 @@ class _ComentariosState extends State<Comentarios> {
             style: GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
           ),
           subtitle: Text(
-            'Por: ${comentario.usuarioId ?? 'Desconocido'}',
+            'Por: ${comentario.usuarioNombre ?? 'Desconocido'}',
             style: GoogleFonts.montserrat(color: Colors.white54, fontSize: 12),
           ),
-          trailing: Text(DateFormat('yyyy-MM-dd').format(comentario.fecha),
+          trailing: Text(DateFormat('yyyy-MM-dd').format(comentario.fecha!),
               style:
                   GoogleFonts.montserrat(color: Colors.white54, fontSize: 12)),
         ),

@@ -8,7 +8,7 @@ class ComentariosRepository {
     return _comentarioService.fetchComentariosByEventoId(eventoId);
   }
 
-  Future<Comentario> postComentary(int eventoId, int userId, dataComentario) {
+  Future<Comentario> postComentary(int eventoId, int userId, Comentario dataComentario) {
     return _comentarioService.postComentario(eventoId, userId, dataComentario);
   }
 }

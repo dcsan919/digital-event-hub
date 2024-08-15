@@ -2,20 +2,29 @@ import 'package:deh_client/UI/screens/detalles_event.dart';
 import 'package:deh_client/UI/widgets/filter_events.dart';
 import 'package:deh_client/UI/widgets/noEvents.dart';
 import 'package:deh_client/UI/widgets/noInternet.dart';
+import 'package:deh_client/UI/widgets/sidebar.dart';
 import 'package:deh_client/models/events.dart';
 import 'package:deh_client/repositories/events_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import '../../models/usuario.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_plus/icons_plus.dart';
 
+// ignore: must_be_immutable
 class ListEvent extends StatefulWidget {
+  int userId;
+  final Usuario usuario;
+
+  ListEvent({required this.userId, required this.usuario});
+
   @override
   _ListEventState createState() => _ListEventState();
 }
 
 class _ListEventState extends State<ListEvent> {
   final List<bool> _selections = <bool>[false, true, false];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final EventsRepository _eventsRepository = EventsRepository();
   late Future<List<ListEvents>> _eventsFuture;
   final _colorWhite = Colors.white;
@@ -80,7 +89,7 @@ class _ListEventState extends State<ListEvent> {
       for (int i = 0; i < _selections.length; i++) {
         _selections[i] = false;
       }
-      if (_selectedTipoEvento == 'Público') {
+      if (_selectedTipoEvento == 'Publico') {
         _selections[0] = true;
         _selections[1] = false;
         _selections[2] = false;
@@ -160,10 +169,12 @@ class _ListEventState extends State<ListEvent> {
             _selectedTipoEvento != null && _selectedTipoEvento!.isNotEmpty ||
             _selectedHora != null && _selectedHora!.isNotEmpty;
     return Scaffold(
+        key: _scaffoldKey,
         backgroundColor: _colorWhite,
         appBar: AppBar(
           backgroundColor: _colorWhite,
           toolbarHeight: 90,
+          automaticallyImplyLeading: false,
           surfaceTintColor: _colorWhite,
           title: Padding(
             padding: const EdgeInsets.all(15),
@@ -177,8 +188,10 @@ class _ListEventState extends State<ListEvent> {
                   prefixIcon: Container(
                       width: 75,
                       child: IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.list),
+                        onPressed: () {
+                          _scaffoldKey.currentState?.openDrawer();
+                        },
+                        icon: Icon(Icons.menu),
                       )),
                   suffixIcon: IconButton(
                       onPressed: () {
@@ -187,6 +200,10 @@ class _ListEventState extends State<ListEvent> {
                       icon: Icon(Icons.search))),
             ),
           ),
+        ),
+        drawer: Sidebar(
+          userId: widget.userId,
+          usuario: widget.usuario,
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(10),
@@ -257,7 +274,7 @@ class _ListEventState extends State<ListEvent> {
 
                         if (index == 0) {
                           _fetchEventsByType('Publico');
-                          _applyFilters2('Público');
+                          _applyFilters2('Publico');
                         } else if (index == 1) {
                           _fetchEvents();
                           _applyFilters2(null);
@@ -300,99 +317,102 @@ class _ListEventState extends State<ListEvent> {
           ),
         ));
   }
-}
 
-Widget _buildEventsList(List<ListEvents> events) {
-  const _colorText = Colors.white;
-  const _colorDEH = Color.fromARGB(255, 58, 18, 74);
-  return ListView.builder(
-      shrinkWrap: true,
-      physics: ClampingScrollPhysics(),
-      itemCount: events.length,
-      itemBuilder: (context, index) {
-        final event = events[index];
-        return Card(
-          margin: EdgeInsets.all(8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20.0),
-                    topRight: Radius.circular(20.0)),
-                child: Image.network(
-                    event.imagen_url ??
-                        'https://imgs.search.brave.com/yhxBu52UuvVKXg7IqZS9no1cqFXsyR_d-rsBrqZPZvo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/bWV4aWNvZGVzY29u/b2NpZG8uY29tLm14/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDIx/LzEwL1ZBUVVFUklB/LURFLUFOSU1BUy0y/MDIxXzUyLTkwMHg1/OTYuanBn',
-                    height: 120.0,
-                    width: double.infinity,
-                    fit: BoxFit.cover),
-              ),
-              Container(
-                  padding: EdgeInsets.all(5.0),
-                  decoration: BoxDecoration(
-                    color: _colorDEH,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromRGBO(58, 18, 74, 255).withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      )
-                    ],
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(20.0),
-                      bottomRight: Radius.circular(20.0),
-                    ),
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      event.nombre_evento ?? 'Texto no disponible',
-                      style: GoogleFonts.montserrat(
-                          color: _colorText, fontSize: 19),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Organizador: ${event.organizador_nombre}',
-                            style: GoogleFonts.montserrat(
-                                color: _colorText, fontSize: 13)),
-                        Text('Inicia: ${event.fecha_inicio}',
-                            style: GoogleFonts.montserrat(
-                                color: _colorText, fontSize: 13))
+  Widget _buildEventsList(List<ListEvents> events) {
+    const _colorText = Colors.white;
+    const _colorDEH = Color.fromARGB(255, 58, 18, 74);
+    return ListView.builder(
+        shrinkWrap: true,
+        physics: ClampingScrollPhysics(),
+        itemCount: events.length,
+        itemBuilder: (context, index) {
+          final event = events[index];
+          return Card(
+            margin: EdgeInsets.all(8),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0)),
+                  child: Image.network(
+                      event.imagen_url ??
+                          'https://imgs.search.brave.com/yhxBu52UuvVKXg7IqZS9no1cqFXsyR_d-rsBrqZPZvo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/bWV4aWNvZGVzY29u/b2NpZG8uY29tLm14/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDIx/LzEwL1ZBUVVFUklB/LURFLUFOSU1BUy0y/MDIxXzUyLTkwMHg1/OTYuanBn',
+                      height: 120.0,
+                      width: double.infinity,
+                      fit: BoxFit.cover),
+                ),
+                Container(
+                    padding: EdgeInsets.all(5.0),
+                    decoration: BoxDecoration(
+                      color: _colorDEH,
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              Color.fromRGBO(58, 18, 74, 255).withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
                       ],
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
+                      ),
                     ),
-                    trailing: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 8,
-                              )
-                            ],
-                            color: const Color.fromARGB(255, 33, 133, 36),
-                            borderRadius: BorderRadius.circular(20.0)),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetallesEventos(eventoId: event.evento_id!, userId: event.evento_id!,),
-                              ),
-                            );
-                          },
-                          child: Icon(
-                            Bootstrap.ticket_detailed_fill,
-                            color: _colorText,
-                          ),
-                        )),
-                  )),
-            ],
-          ),
-        );
-      });
+                    child: ListTile(
+                      title: Text(
+                        event.nombre_evento ?? 'Texto no disponible',
+                        style: GoogleFonts.montserrat(
+                            color: _colorText, fontSize: 19),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Organizador: ${event.organizador_nombre}',
+                              style: GoogleFonts.montserrat(
+                                  color: _colorText, fontSize: 13)),
+                          Text('Inicia: ${event.fecha_inicio}',
+                              style: GoogleFonts.montserrat(
+                                  color: _colorText, fontSize: 13))
+                        ],
+                      ),
+                      trailing: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 8,
+                                )
+                              ],
+                              color: const Color.fromARGB(255, 33, 133, 36),
+                              borderRadius: BorderRadius.circular(20.0)),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetallesEventos(
+                                    eventoId: event.evento_id!,
+                                    userId: widget.userId,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Icon(
+                              Bootstrap.ticket_detailed_fill,
+                              color: _colorText,
+                            ),
+                          )),
+                    )),
+              ],
+            ),
+          );
+        });
+  }
 }

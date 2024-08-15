@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 import '../screens/compras_screen.dart';
 import '../screens/notificaciones_screen.dart';
 import '../screens/map_screen.dart';
+import '../../models/usuario.dart';
 import '../screens/list_events.dart';
 
 class NabInf extends StatefulWidget {
-  const NabInf({super.key});
+  final int userId;
+  final Usuario usuario;
+  final String token;
 
+  const NabInf(
+      {super.key,
+      required this.token,
+      required this.userId,
+      required this.usuario});
   @override
   State<NabInf> createState() => _NabInfState();
 }
 
 class _NabInfState extends State<NabInf> {
   int _selectedIndex = 0;
-
-  final List<Widget> _widgetOptions = <Widget>[
-    ListEvent(),
-    ComprasScreen(),
-    MapScreen(),
-    NotificacionesScreen(),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -29,6 +30,19 @@ class _NabInfState extends State<NabInf> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _widgetOptions = <Widget>[
+      ListEvent(
+        userId: widget.userId,
+        usuario: widget.usuario,
+      ),
+      ComprasScreen(
+        userId: widget.userId,
+        eventoId: 1,
+      ),
+      MapScreen(),
+      NotificacionesScreen()
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(

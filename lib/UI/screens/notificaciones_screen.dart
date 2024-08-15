@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class NotificacionesScreen extends StatefulWidget {
   @override
@@ -10,25 +11,34 @@ class NotificacionesScreen extends StatefulWidget {
 
 class _NotificacionesScreenState extends State<NotificacionesScreen> {
   List<Map<String, dynamic>> notificaciones = [];
-  int? lastNotificacionId;
+  Map<int, bool> notificacionesEstado = {};
 
   @override
   void initState() {
     super.initState();
-    _loadLastNotificacionId();
+    _loadNotificacionesEstado();
     fetchNotificaciones();
   }
 
-  Future<void> _loadLastNotificacionId() async {
+  Future<void> _loadNotificacionesEstado() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      lastNotificacionId = prefs.getInt('lastNotificacionId');
-    });
+    final savedEstado = prefs.getString('notificacionesEstado');
+    if (savedEstado != null) {
+      final decoded = jsonDecode(savedEstado) as Map<String, dynamic>;
+      setState(() {
+        notificacionesEstado = decoded.map((key, value) {
+          return MapEntry(
+              int.parse(key), value == null ? false : value as bool);
+        });
+      });
+    }
   }
 
-  Future<void> _saveLastNotificacionId(int id) async {
+  Future<void> _saveNotificacionesEstado() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('lastNotificacionId', id);
+    final encoded = jsonEncode(notificacionesEstado
+        .map((key, value) => MapEntry(key.toString(), value)));
+    await prefs.setString('notificacionesEstado', encoded);
   }
 
   Future<void> fetchNotificaciones() async {
@@ -40,12 +50,14 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           List<Map<String, dynamic>>.from(jsonDecode(response.body));
       setState(() {
         notificaciones = _groupNotifications(fetchedNotifications);
-        if (notificaciones.isNotEmpty) {
-          final last = notificaciones.last;
-          if (last['notificacion_id'] != lastNotificacionId) {
-            _showNotificationAlert(last);
+        // Actualiza el estado de las notificaciones con la información más reciente
+        for (var notificacion in notificaciones) {
+          final id = notificacion['notificacion_id'];
+          if (notificacionesEstado[id] == null) {
+            notificacionesEstado[id] = true; // Marca como nuevo
           }
         }
+        _saveNotificacionesEstado(); // Guarda el estado actualizado
       });
     } else {
       throw Exception('Failed to load notifications');
@@ -70,9 +82,17 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         'mensaje': '${entry.key} (${messages.length})',
         'fecha_envio': messages.last['fecha_envio'],
         'notificacion_id': messages.last['notificacion_id'],
-        'details': messages
+        'details': messages,
+        'isNew': notificacionesEstado[messages.last['notificacion_id']] ?? true
       };
     }).toList();
+  }
+
+  void _markNotificationAsRead(int notificationId) {
+    setState(() {
+      notificacionesEstado[notificationId] = false;
+    });
+    _saveNotificacionesEstado(); // Guarda el estado actualizado
   }
 
   void _showNotificationAlert(Map<String, dynamic> notificacion) {
@@ -81,21 +101,24 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Nueva Notificación'),
+            title: Text('Nueva Notificación', style: GoogleFonts.montserrat()),
             content: Row(
               children: [
                 Icon(Icons.notifications, color: Colors.blue),
                 SizedBox(width: 10),
                 Expanded(
-                  child: Text('${notificacion['mensaje']}'),
+                  child: Text('${notificacion['mensaje']}',
+                      style: GoogleFonts.montserrat()),
                 ),
               ],
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('OK', style: TextStyle(color: Colors.blue)),
+                child: Text('OK',
+                    style: GoogleFonts.montserrat(color: Colors.blue)),
                 onPressed: () {
-                  _saveLastNotificacionId(notificacion['notificacion_id']);
+                  final id = notificacion['notificacion_id'];
+                  _markNotificationAsRead(id); // Marca como leído
                   Navigator.of(context).pop();
                 },
               ),
@@ -111,24 +134,39 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Detalles de Notificación'),
+          title:
+              Text('Detalles de Notificación', style: GoogleFonts.montserrat()),
           content: Container(
             width: double.maxFinite,
             child: ListView.builder(
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notification = notifications[index];
-                return ListTile(
-                  title: Text(notification['mensaje']),
-                  subtitle: Text(
-                      'Fecha de envío: ${notification['fecha_envio'].substring(0, 10)}'),
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  elevation: 8, // Ajusta la elevación para efecto 3D
+                  shadowColor:
+                      Colors.black.withOpacity(0.3), // Color de la sombra
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12), // Borde redondeado
+                  ),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    title: Text(notification['mensaje'],
+                        style: GoogleFonts.montserrat()),
+                    subtitle: Text(
+                        'Fecha de envío: ${notification['fecha_envio'].substring(0, 10)}',
+                        style: GoogleFonts.montserrat()),
+                    onTap: () {},
+                  ),
                 );
               },
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cerrar', style: TextStyle(color: Colors.blue)),
+              child: Text('Cerrar',
+                  style: GoogleFonts.montserrat(color: Colors.blue)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -143,8 +181,8 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notificaciones'),
-        backgroundColor: Color.fromARGB(255, 58, 18, 74),
+        title: Text('Notificaciones', style: GoogleFonts.montserrat()),
+        backgroundColor: Color.fromARGB(255, 236, 231, 237),
       ),
       body: notificaciones.isEmpty
           ? Center(child: CircularProgressIndicator())
@@ -152,14 +190,32 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
               itemCount: notificaciones.length,
               itemBuilder: (context, index) {
                 final notificacion = notificaciones[index];
+                final isNew = notificacion['isNew'] as bool? ?? false;
+
                 return Card(
                   margin: EdgeInsets.all(10),
+                  elevation: 8, // Ajusta la elevación para efecto
+                  shadowColor:
+                      Colors.black.withOpacity(0.3), // Color de la sombra
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12), // Borde redondeado
+                  ),
                   child: ListTile(
-                    title: Text(notificacion['mensaje']),
+                    contentPadding: EdgeInsets.all(16),
+                    title: Text(notificacion['mensaje'],
+                        style: GoogleFonts.montserrat(
+                            color: isNew ? Colors.blue : Colors.black)),
                     subtitle: Text(
-                        'Fecha de envío: ${notificacion['fecha_envio'].substring(0, 10)}'),
-                    onTap: () =>
-                        _showNotificationDetails(notificacion['details']),
+                        'Fecha de envío: ${notificacion['fecha_envio'].substring(0, 10)}',
+                        style: GoogleFonts.montserrat(
+                            color: isNew ? Colors.blue : Colors.black)),
+                    onTap: () {
+                      _showNotificationDetails(notificacion['details']);
+                      if (isNew) {
+                        _markNotificationAsRead(
+                            notificacion['notificacion_id']);
+                      }
+                    },
                   ),
                 );
               },

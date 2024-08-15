@@ -61,13 +61,11 @@ class _DetallesEventosState extends State<DetallesEventos> {
           } else if (!snapshot.hasData) {
             return Center(child: Text('Evento no encontrado'));
           } else {
-            final evento = snapshot.data!;
             return SingleChildScrollView(
               child: Column(
                 children: [
                   NabTop(selectedIndexNotifier: _selectedSectionNotifier),
                   SizedBox(height: 20),
-                  const SizedBox(height: 20),
                   ValueListenableBuilder<int>(
                     valueListenable: _selectedSectionNotifier,
                     builder: (context, selectedIndex, child) {
@@ -75,6 +73,7 @@ class _DetallesEventosState extends State<DetallesEventos> {
                           widget.eventoId, widget.userId);
                     },
                   ),
+                  SizedBox(height: 30),
                 ],
               ),
             );
@@ -394,6 +393,7 @@ Widget _DetalleEvento(DetallesEvento evento, context) {
               ),
             ),
           ),
+          SizedBox(height: 25),
         ],
       ),
     ),

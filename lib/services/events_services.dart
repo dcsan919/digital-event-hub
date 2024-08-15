@@ -63,16 +63,8 @@ class EventsService {
         queryParameters['hora'] = hora;
       }
 
-      // Construcción de la URI
-      final uri = Uri.https(
-          apiUrlF,
-          '/api/eventos/filtro', // Path
-          queryParameters // Parámetros de consulta
-          );
-
-      print('Query URL: $uri'); // Verifica la URL generada
-
-      // Solicitud usando dio
+      final uri = Uri.https(apiUrlF, '/api/eventos/filtro', queryParameters);
+      print('Query URL: $uri');
       final response = await _dio.getUri(uri);
 
       if (response.statusCode == 200) {
