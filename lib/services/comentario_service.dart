@@ -20,10 +20,9 @@ class ComentarioService {
     }
   }
 
-  Future<Comentario> postComentario(
-      int eventoId, int userId, Comentario dataComentario) async {
+  Future<Comentario> postComentario(Comentario dataComentario) async {
     try {
-      String url = '$urlComentarios/create/$eventoId/$userId';
+      String url = '$urlComentarios/create';
 
       _dio.interceptors.add(LogInterceptor(
         request: true,

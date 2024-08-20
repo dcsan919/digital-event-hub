@@ -1,11 +1,28 @@
-import 'package:deh_client/UI/screens/list_events.dart';
+import 'package:deh_client/const.dart';
 import 'package:deh_client/registroOrganizador.dart';
 import 'package:flutter/material.dart';
 import 'package:deh_client/login.dart';
 import 'package:deh_client/registro.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:provider/provider.dart';
+import 'package:deh_client/providers/ticketProvider.dart';
 import 'dart:async';
 
-void main() => runApp(MyApp());
+void main() async {
+  await setup();
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => TicketProvider(),
+      child: MyApp(),
+    ),
+  );
+}
+
+Future<void> setup() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Stripe.publishableKey = stripePublishableKey;
+  await Stripe.instance.applySettings();
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -35,10 +52,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _navigateToHome() async {
     await Future.delayed(Duration(seconds: 3), () {});
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomePage()),
-    );
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    }
   }
 
   @override
@@ -110,13 +129,13 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         "¿Eres organizador?",
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Text(
+                    const SizedBox(height: 20),
+                    const Text(
                       'DIGITAL EVENT',
                       style: TextStyle(
                         color: Colors.black,

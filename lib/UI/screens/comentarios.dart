@@ -61,8 +61,7 @@ class _ComentariosState extends State<Comentarios> {
       print(
           "comentario: $comentario, fecha: $fecha, evento: $eventoId, usuario: $userId");
 
-      await _comentariosRepository.postComentary(
-          eventoId, userId, newComentario);
+      await _comentariosRepository.postComentary(newComentario);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Comentario agregado con éxito')),
@@ -143,9 +142,9 @@ class _ComentariosState extends State<Comentarios> {
                 }
                 return Text('Error: $error');
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return noEvents();
+                return noEvents("No hay comentarios");
               } else {
-                return _buildComentariosList(snapshot.data! ?? []);
+                return _buildComentariosList(snapshot.data!);
               }
             },
           ),

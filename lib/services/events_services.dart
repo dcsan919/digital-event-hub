@@ -14,6 +14,7 @@ class EventsService {
       String query = 'events';
       final response = await _dio.get(apiUrl + query);
 
+      print(apiUrl + query);
       if (response.statusCode == 200) {
         List<dynamic> body = response.data;
         return body.map((dynamic item) => ListEvents.fromJson(item)).toList();
@@ -64,8 +65,8 @@ class EventsService {
       }
 
       final uri = Uri.https(apiUrlF, '/api/eventos/filtro', queryParameters);
-      print('Query URL: $uri');
       final response = await _dio.getUri(uri);
+      print('Query URL: $uri');
 
       if (response.statusCode == 200) {
         List<dynamic> body = response.data;

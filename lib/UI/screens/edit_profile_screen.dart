@@ -1,5 +1,7 @@
+import 'package:deh_client/UI/themes/linea.dart';
 import 'package:flutter/material.dart';
 import 'package:deh_client/repositories/usuario_repository.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
@@ -23,7 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _lastNameController;
   late TextEditingController _telefonoController;
   late Future<Usuario> futureUser;
-  String? _imageFile;
+  String? imageFiles;
 
   @override
   void initState() {
@@ -31,7 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nombreController = TextEditingController(text: widget.usuario.nombre);
     _lastNameController = TextEditingController(text: widget.usuario.lastName);
     _telefonoController = TextEditingController(text: widget.usuario.telefono);
-    _imageFile = widget.usuario.fotoPerfil;
+    imageFiles = widget.usuario.fotoPerfil;
     _fetchUsuario();
   }
 
@@ -85,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await usuarioRepository.uploadProfilePicture(imageFile, widget.userId);
       if (!mounted) return;
       setState(() {
-        _imageFile = imageFile;
+        imageFiles = imageFile;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Foto de perfil actualizada exitosamente')),
@@ -130,10 +132,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Editar Perfil'),
-        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          color: Colors.white,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text('Editar Perfil',
+            style: GoogleFonts.montserrat(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            )),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: FutureBuilder<Usuario>(
         future: futureUser,
@@ -148,106 +163,170 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             final usuario = snapshot.data!;
             return Stack(
               children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
+                Form(
+                  key: _formKey,
+                  child: Column(children: [
+                    Stack(
+                      alignment: Alignment.center,
                       children: [
-                        SizedBox(height: 20),
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 80,
-                              backgroundImage: _imageFile != null
-                                  ? (usuario.fotoPerfil != null &&
-                                          usuario.fotoPerfil!.isNotEmpty
-                                      ? NetworkImage(usuario.fotoPerfil!)
-                                      : null)
-                                  : FileImage(File(
-                                      _imageFile!)), // Mostrar imagen local si se seleccionó una
-                              child: (_imageFile == null &&
-                                      (usuario.fotoPerfil == null ||
-                                          usuario.fotoPerfil!.isEmpty))
-                                  ? Icon(Icons.account_circle, size: 160)
-                                  : null,
+                        Container(
+                          height: 360,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color.fromARGB(255, 134, 24, 153),
+                                Color.fromARGB(255, 58, 18, 74).withOpacity(1),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
                             ),
-                            Positioned(
-                              bottom: 0,
-                              right: 15,
-                              child: GestureDetector(
-                                onTap: _changeProfilePicture,
-                                child: const CircleAvatar(
-                                    backgroundColor:
-                                        Color.fromARGB(172, 0, 0, 0),
-                                    radius: 20,
-                                    child: Icon(Icons.camera_alt,
-                                        size: 25,
-                                        color:
-                                            Color.fromARGB(255, 217, 0, 255))),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 250,
+                              child: Center(
+                                child: Align(
+                                  alignment: Alignment(0.0, 1.5),
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        width: 180,
+                                        height: 180,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.white, width: 2),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.5),
+                                              spreadRadius: 7,
+                                              blurRadius: 15,
+                                              offset: Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              usuario.fotoPerfil != null
+                                                  ? NetworkImage(
+                                                      usuario.fotoPerfil!)
+                                                  : null,
+                                          backgroundColor: Colors.white,
+                                          child: usuario.fotoPerfil == null
+                                              ? Icon(Icons.account_circle,
+                                                  size: 50,
+                                                  color: Colors.grey[700])
+                                              : null,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 10,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            _changeProfilePicture();
+                                          },
+                                          child: CircleAvatar(
+                                            backgroundColor:
+                                                Colors.black.withOpacity(0.7),
+                                            radius: 25,
+                                            child: Icon(Icons.camera_alt,
+                                                size: 30, color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
-                        TextFormField(
-                          controller: _nombreController,
-                          decoration: InputDecoration(
-                            labelText: 'Nombre',
-                            prefixIcon: Icon(Icons.person,
-                                color: const Color.fromARGB(255, 150, 11, 145)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingrese su nombre';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: 10),
-                        TextFormField(
-                          controller: _lastNameController,
-                          decoration: InputDecoration(
-                            labelText: 'Apellido',
-                            prefixIcon: Icon(Icons.person_outline,
-                                color: const Color.fromARGB(255, 150, 11, 145)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingrese su apellido';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: 10),
-                        TextFormField(
-                          controller: _telefonoController,
-                          decoration: InputDecoration(
-                            labelText: 'Teléfono',
-                            prefixIcon: Icon(Icons.phone,
-                                color: const Color.fromARGB(255, 150, 11, 145)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingrese su teléfono';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: 100),
                       ],
                     ),
-                  ),
+                    SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 10),
+                          Text("Editar Información",
+                              style: GoogleFonts.montserrat(fontSize: 18)),
+                          SizedBox(height: 10),
+                          CustomDivider(height: 1.5, width: 250),
+                          SizedBox(height: 20),
+                          TextFormField(
+                            controller: _nombreController,
+                            decoration: InputDecoration(
+                              labelText: 'Nombre',
+                              labelStyle: GoogleFonts.montaga(),
+                              prefixIcon: Icon(Icons.person,
+                                  color:
+                                      const Color.fromARGB(255, 150, 11, 145)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            style: GoogleFonts.montaga(),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese su nombre';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20),
+                          TextFormField(
+                            controller: _lastNameController,
+                            decoration: InputDecoration(
+                              labelText: 'Apellido',
+                              labelStyle: GoogleFonts.montaga(),
+                              prefixIcon: Icon(Icons.person_outline,
+                                  color:
+                                      const Color.fromARGB(255, 150, 11, 145)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            style: GoogleFonts.montaga(),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese su apellido';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20),
+                          TextFormField(
+                            controller: _telefonoController,
+                            decoration: InputDecoration(
+                              labelStyle: GoogleFonts.montaga(),
+                              labelText: 'Teléfono',
+                              prefixIcon: Icon(Icons.phone,
+                                  color:
+                                      const Color.fromARGB(255, 150, 11, 145)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            style: GoogleFonts.montaga(),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese su teléfono';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 100),
+                        ],
+                      ),
+                    )
+                  ]),
                 ),
                 Align(
                   alignment: Alignment.bottomCenter,

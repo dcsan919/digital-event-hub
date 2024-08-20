@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Widget noEvents() {
+Widget noEvents(String text) {
   return Center(
     child: Container(
       child: Column(
@@ -9,8 +9,7 @@ Widget noEvents() {
           SizedBox(
             height: 20,
           ),
-          Text('No se encontraron eventos',
-              style: GoogleFonts.montserrat(fontSize: 19)),
+          Text(text, style: GoogleFonts.montserrat(fontSize: 19)),
           SizedBox(
             height: 10,
           ),

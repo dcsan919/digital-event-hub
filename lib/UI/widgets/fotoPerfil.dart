@@ -28,12 +28,11 @@ class ChangeProfilePictureModal extends StatelessWidget {
 
     final imageFile = pickedFile.path;
 
-    // Mostrar el indicador de carga
-    final loadingDialog = showDialog(
+    showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return Center(
+        return const Center(
           child: CircularProgressIndicator(),
         );
       },

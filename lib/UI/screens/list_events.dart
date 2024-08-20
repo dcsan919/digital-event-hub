@@ -7,9 +7,11 @@ import 'package:deh_client/models/events.dart';
 import 'package:deh_client/repositories/events_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import '../../models/usuario.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_plus/icons_plus.dart';
+import '../themes/tipo_boleto.dart';
 
 // ignore: must_be_immutable
 class ListEvent extends StatefulWidget {
@@ -106,32 +108,19 @@ class _ListEventState extends State<ListEvent> {
     });
   }
 
-  void _applyFilters2(String? tipoEvento) {
-    setState(() {
-      initialCategoria = _selectedCategoria;
-      _selectedHora = null;
-      _selectedTipoEvento = tipoEvento;
-      _fetchFilteredEvents(
-          _selectedCategoria, _selectedTipoEvento, _selectedHora);
-      if (initialCategoria == null &&
-          _selectedHora == null &&
-          _selectedTipoEvento == null) {
-        _fetchEvents();
-      }
-    });
-  }
-
   void _clearFilters() {
     setState(() {
       _selectedHora = null;
       _selectedCategoria = null;
       _selectedTipoEvento = null;
-      if (_selectedTipoEvento == null && _selectedCategoria == null) {
+      if (_selectedTipoEvento == null &&
+          _selectedCategoria == null &&
+          _selectedHora == null) {
         _selections[0] = false;
         _selections[1] = true;
         _selections[2] = false;
+        _fetchEvents();
       }
-      _fetchEvents();
     });
   }
 
@@ -255,37 +244,41 @@ class _ListEventState extends State<ListEvent> {
               ),
               Center(
                 child: ToggleButtons(
-                  constraints:
-                      const BoxConstraints(minWidth: 100, minHeight: 40.0),
-                  borderRadius: BorderRadius.circular(20),
-                  fillColor: const Color(0xFF3A124A),
-                  selectedColor: Colors.white,
-                  color: Colors.black,
-                  borderWidth: 1,
-                  selectedBorderColor: Colors.black,
-                  borderColor: Colors.black,
-                  children: eventos,
-                  isSelected: _selections,
-                  onPressed: (int index) {
-                    setState(() {
-                      for (int i = 0; i < _selections.length; i++) {
-                        _selections[i] = i == index;
-                        print(_selections[i]);
+                    constraints:
+                        const BoxConstraints(minWidth: 100, minHeight: 40.0),
+                    borderRadius: BorderRadius.circular(20),
+                    fillColor: const Color(0xFF3A124A),
+                    selectedColor: Colors.white,
+                    color: Colors.black,
+                    borderWidth: 1,
+                    selectedBorderColor: Colors.black,
+                    borderColor: Colors.black,
+                    children: eventos,
+                    isSelected: _selections,
+                    onPressed: (int index) {
+                      setState(() {
+                        for (int i = 0; i < _selections.length; i++) {
+                          _selections[i] = i == index;
+                        }
 
                         if (index == 0) {
-                          _fetchEventsByType('Publico');
-                          _applyFilters2('Publico');
+                          _selectedTipoEvento = 'Publico';
                         } else if (index == 1) {
-                          _fetchEvents();
-                          _applyFilters2(null);
+                          _selectedTipoEvento = null;
                         } else if (index == 2) {
-                          _fetchEventsByType('Privado');
-                          _applyFilters2('Privado');
+                          _selectedTipoEvento = 'Privado';
                         }
-                      }
-                    });
-                  },
-                ),
+
+                        if (_selectedTipoEvento == null &&
+                            _selectedCategoria == null &&
+                            _selectedHora == null) {
+                          _fetchEvents();
+                        } else {
+                          _fetchFilteredEvents(_selectedCategoria,
+                              _selectedTipoEvento, _selectedHora);
+                        }
+                      });
+                    }),
               ),
               const SizedBox(
                 height: 15,
@@ -307,7 +300,7 @@ class _ListEventState extends State<ListEvent> {
                       .contains('No hay conexión a Internet')) {
                     return noInternet();
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return noEvents();
+                    return noEvents("No se encontraron Eventos");
                   } else {
                     return _buildEventsList(snapshot.data!);
                   }
@@ -374,7 +367,8 @@ class _ListEventState extends State<ListEvent> {
                           Text('Organizador: ${event.organizador_nombre}',
                               style: GoogleFonts.montserrat(
                                   color: _colorText, fontSize: 13)),
-                          Text('Inicia: ${event.fecha_inicio}',
+                          Text(
+                              'Inicia: ${event.fecha_inicio != null ? DateFormat('yyyy-MM-dd').format(event.fecha_inicio!) : 'Fecha no disponible'}',
                               style: GoogleFonts.montserrat(
                                   color: _colorText, fontSize: 13))
                         ],
@@ -385,12 +379,12 @@ class _ListEventState extends State<ListEvent> {
                           decoration: BoxDecoration(
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.green.withOpacity(0.5),
+                                  color: Colors.white.withOpacity(0.3),
                                   spreadRadius: 2,
                                   blurRadius: 8,
                                 )
                               ],
-                              color: const Color.fromARGB(255, 33, 133, 36),
+                              color: getIconColor(event.tipo_evento!),
                               borderRadius: BorderRadius.circular(20.0)),
                           child: GestureDetector(
                             onTap: () {

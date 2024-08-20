@@ -14,7 +14,7 @@ class PaymentService {
 
     if (response.statusCode == 200) {
       final responseData = response.data;
-      return responseData['client_secret']; // Asegúrate de que sea un String
+      return responseData['message'];
     } else {
       throw Exception('Failed to create PaymentIntent');
     }

@@ -54,7 +54,7 @@ class _NabTopState extends State<NabTop> {
                     : WidgetStateProperty.all(Color.fromARGB(100, 217, 0, 255)),
                 splashFactory: NoSplash.splashFactory,
                 padding: WidgetStateProperty.all(
-                    EdgeInsets.symmetric(horizontal: 25, vertical: 15)),
+                    EdgeInsets.symmetric(horizontal: 25, vertical: 10)),
                 side: WidgetStateProperty.all(
                   BorderSide(
                     color: isSelected ? Colors.white : Colors.black,

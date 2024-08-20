@@ -4,6 +4,7 @@ import '../screens/notificaciones_screen.dart';
 import '../screens/map_screen.dart';
 import '../../models/usuario.dart';
 import '../screens/list_events.dart';
+import 'package:icons_plus/icons_plus.dart';
 
 class NabInf extends StatefulWidget {
   final int userId;
@@ -37,7 +38,7 @@ class _NabInfState extends State<NabInf> {
       ),
       ComprasScreen(
         userId: widget.userId,
-        eventoId: 1,
+        cart: [],
       ),
       MapScreen(),
       NotificacionesScreen()
@@ -55,15 +56,19 @@ class _NabInfState extends State<NabInf> {
             label: 'Inicio',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.trolley),
-            label: 'Compras',
+            icon: Icon(
+              Bootstrap.ticket_detailed_fill,
+            ),
+            label: 'Boleto',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: Icon(
+              Bootstrap.map_fill,
+            ),
             label: 'Mapa',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notification_add),
+            icon: Icon(Icons.notifications),
             label: 'Notificaciones',
           ),
         ],

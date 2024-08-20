@@ -1,176 +1,107 @@
-import 'package:deh_client/models/pago.dart';
+import 'package:deh_client/UI/screens/carrito.dart';
+import 'package:deh_client/models/detalles-evento.dart';
+import 'package:deh_client/models/events.dart';
+import 'package:deh_client/models/ticket.dart';
+import 'package:deh_client/repositories/detalles_evento_repository.dart';
+import 'package:deh_client/repositories/events_repository.dart';
 import 'package:deh_client/repositories/pago_repository.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:local_auth/local_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'historial_pagos_screen.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+import '../themes/tipo_boleto.dart';
 
 class ComprasScreen extends StatefulWidget {
   final int userId;
-  final int eventoId;
+  final List<Ticket> cart;
 
-  ComprasScreen({required this.userId, required this.eventoId});
+  ComprasScreen({required this.userId, required this.cart});
 
   @override
   State<ComprasScreen> createState() => _ComprasScreenState();
 }
 
 class _ComprasScreenState extends State<ComprasScreen> {
-  List eventos = [];
   final LocalAuthentication auth = LocalAuthentication();
   final PaymentRepository _paymentRepositorie = PaymentRepository();
+  final DetallesEventoRepository _detallesEventoRepository =
+      DetallesEventoRepository();
+  late Future<DetallesEvento> futureEvento;
+  final EventsRepository _eventsRepository = EventsRepository();
+  late Future<List<ListEvents>> _eventsFuture;
+  List<dynamic> ticket = [];
+  String? qrData;
 
   @override
   void initState() {
-    WidgetsFlutterBinding.ensureInitialized();
-    Stripe.publishableKey =
-        'pk_test_51Pnrfa2MBIXEGajF1py0dIHwiDBQ55TStKFmjEkxqiUk4AFs7kHhMgO4lUX7fIBlxGVmoYKgJKTnHJZgOPCmn9G100MZiI64C1';
     super.initState();
-    fetchEventos();
+    _fetchHistorialPagosAndEvents();
   }
 
-  Future<void> fetchEventos() async {
-    try {
-      final response = await http.get(Uri.parse(
-          'https://api-digitalevent.onrender.com/api/eventos/events'));
-
-      if (response.statusCode == 200) {
-        if (mounted) {
-          setState(() {
-            eventos = jsonDecode(response.body);
-          });
-        }
-      } else {
-        throw Exception('Failed to load events');
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> _showPaymentSheet(String clientSecret) async {
-    try {
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          style: ThemeMode.system,
-          merchantDisplayName: 'Digital Event Hub',
-        ),
-      );
-
-      await Stripe.instance.presentPaymentSheet();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pago realizado con éxito')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ocurrió un error durante el pago: $e')),
-      );
-    }
-  }
-
-  Future<void> _authenticateAndShowDialog(Map evento) async {
-    try {
-      bool authenticated = await auth.authenticate(
-        localizedReason: 'Por favor autentícate para comprar el boleto',
-        options: const AuthenticationOptions(biometricOnly: true),
-      );
-
-      if (authenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Autenticación exitosa. Procesando pago...')),
-        );
-
-        PaymentRequest newPaymentRequest = PaymentRequest(
-          amount: 1000, // Monto en centavos
-          currency: 'usd', // Asegúrate de que la moneda sea válida
-          descripcion: 'Compra de boleto para ${evento['nombre_evento']}',
-          usuarioId: 70, // Usa el ID de usuario del widget
-          eventoId: 1, // Usa el ID del evento del widget
-        );
-
-        final clientSecret =
-            await _paymentRepositorie.postPago(newPaymentRequest);
-
-        if (clientSecret != null && clientSecret.isNotEmpty) {
-          await _showPaymentSheet(clientSecret);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No se pudo obtener el client secret')),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Autenticación fallida')),
-        );
-      }
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ocurrió un error durante el pago: $e')),
-      );
-    }
-  }
-
-  void _showPurchaseDialog(Map evento) {
-    final textStyle = TextStyle(
-      fontFamily: 'Montserrat', // Aplica la fuente Montserrat
-      fontSize: 16.0, // Tamaño de fuente
-      fontWeight: FontWeight.normal, // Peso de fuente
-    );
+  void _codeqr(dynamic evento, dynamic pago) {
+    final userId = widget.userId;
+    final eventoId = evento['evento_id'];
+    final tipoEvento = evento['tipo_evento'];
+    final idPago = pago['pago_id'];
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            '¿Desea comprar este boleto?',
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              fontWeight: FontWeight.bold,
-              fontSize: 18.0, // Tamaño de fuente del título
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                    12.0), // Ajusta el radio del borde redondeado
-                child: Image.network(
-                  evento['imagen_url'],
-                  fit: BoxFit.cover, // Ajusta cómo se escala la imagen
-                  width: 250.0, // Ancho de la imagen
-                  height: 200.0, // Alto de la imagen
-                ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'QR del Boleto',
+                style: GoogleFonts.montserrat(
+                    fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10.0), // Espacio entre la imagen y el texto
-              Text('Evento: ${evento['nombre_evento']}', style: textStyle),
-              Text('Fecha Inicio: ${evento['fecha_inicio'].substring(0, 10)}',
-                  style: textStyle),
-              Text('Fecha Fin: ${evento['fecha_termino'].substring(0, 10)}',
-                  style: textStyle),
-              Text('Costo: \$${evento['max_per']}', style: textStyle),
-              Text('Organizador: ${evento['organizador_nombre']}',
-                  style: textStyle),
+              SizedBox(width: 5),
+              Text(
+                'Id: ${pago['pago_id']}',
+                style: GoogleFonts.montserrat(fontSize: 15),
+              ),
             ],
+          ),
+          content: SizedBox(
+            width: 220,
+            height: 322,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                QrImageView(
+                  data:
+                      'idPago=$idPago&userId=$userId&eventoId=$eventoId&tipoEvento=$tipoEvento',
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  gapless: false,
+                ),
+                Text(
+                  evento['nombre_evento'],
+                  style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text('Inicia: ${_formatDate(evento['fecha_inicio'])}',
+                    style: GoogleFonts.montserrat()),
+                Text('Finaliza: ${_formatDate(evento['fecha_termino'])}',
+                    style: GoogleFonts.montserrat()),
+                Text('Hora: ${evento['hora']}',
+                    style: GoogleFonts.montserrat()),
+                Text('Tipo de evento: ${evento['tipo_evento']}',
+                    style: GoogleFonts.montserrat())
+              ],
+            ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
-            ),
-            TextButton(
-              child: Text('Aceptar', style: TextStyle(color: Colors.green)),
-              onPressed: () {
-                _authenticateAndShowDialog(evento);
-              },
+              child: Text('Cerrar'),
             ),
           ],
         );
@@ -178,121 +109,168 @@ class _ComprasScreenState extends State<ComprasScreen> {
     );
   }
 
-  Color _getIconColor(String tipoEvento) {
-    if (tipoEvento == 'Privado') {
-      return Color.fromARGB(255, 255, 215, 0); // Dorado
-    } else if (tipoEvento == 'Público') {
-      return Colors.green; // Verde
-    } else {
-      return Colors.grey; // Color por defecto
+  String _formatDate(String date) {
+    try {
+      final DateTime parsedDate = DateTime.parse(date);
+      return DateFormat('yyyy-MM-dd').format(parsedDate);
+    } catch (e) {
+      print('Error al formatear la fecha: $e');
+      return date;
     }
   }
 
   void _navigateToHistorialPagos() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => HistorialPagosScreen()),
+      MaterialPageRoute(
+          builder: (context) => HistorialPagosScreen(
+                userId: widget.userId,
+              )),
     );
+  }
+
+  Future<void> _fetchHistorialPagosAndEvents() async {
+    try {
+      final pagosResponse = await http.get(Uri.parse(
+          'https://api-digitalevent.onrender.com/api/pagos/historial/${widget.userId}'));
+      final eventosResponse = await http.get(Uri.parse(
+          'https://api-digitalevent.onrender.com/api/eventos/events'));
+
+      if (pagosResponse.statusCode == 200 &&
+          eventosResponse.statusCode == 200) {
+        List<dynamic> decodedPagos = jsonDecode(pagosResponse.body);
+        List<dynamic> decodedEventos = jsonDecode(eventosResponse.body);
+
+        // Combine the data
+        final combinedData = decodedPagos.map((pago) {
+          final evento = decodedEventos.firstWhere(
+            (event) => event['evento_id'] == pago['evento_id'],
+            orElse: () => null,
+          );
+          return {
+            'pago': pago,
+            'evento': evento,
+          };
+        }).toList();
+
+        setState(() {
+          ticket = combinedData;
+        });
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
+        backgroundColor: Colors.white,
         title: Text(
-          'Lista de Boletos',
-          style: GoogleFonts.montserrat(),
+          'Tus boletos',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Color.fromARGB(255, 236, 231, 237),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Carrito(
+                            userId: widget.userId,
+                          )));
+            },
+          ),
+        ],
       ),
-      body: Container(
-        color: Color.fromARGB(255, 241, 240, 242),
-        child: eventos.isEmpty
-            ? Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: eventos.length,
-                itemBuilder: (context, index) {
-                  final evento = eventos[index];
-                  double costo = evento['max_per'].toDouble();
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 58, 18, 74),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color.fromARGB(255, 58, 18, 74),
-                          blurRadius: 10,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Image.network(
-                            evento['imagen_url'],
-                            width: 120, // Tamaño de la imagen
-                            height: 120, // Tamaño de la imagen
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        SizedBox(
-                            width: 10), // Espacio entre la imagen y el texto
-                        Expanded(
-                          child: ListTile(
-                            contentPadding: EdgeInsets.all(7.0),
-                            title: Text(
-                              evento['nombre_evento'],
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Organizador: ${evento['organizador_nombre']}',
-                                  style: GoogleFonts.montserrat(
-                                      color: Colors.white70),
-                                ),
-                                Text(
-                                  'Inicia: ${evento['fecha_inicio']}',
-                                  style: GoogleFonts.montserrat(
-                                      color: Colors.white70),
-                                ),
-                                Text(
-                                  'Evento: ${evento['tipo_evento']}',
-                                  style: GoogleFonts.montserrat(
-                                      color: Colors.white70),
-                                ),
-                                Text(
-                                  'Costo: \$${evento['max_per']}',
-                                  style: GoogleFonts.montserrat(
-                                      color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                            trailing: Icon(
-                              Icons.confirmation_number,
-                              color: _getIconColor(evento['tipo_evento']),
-                              size: 30,
-                            ),
-                            onTap: () => _showPurchaseDialog(evento),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-      ),
+      body: ticket.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: ticket.length,
+              itemBuilder: (context, index) {
+                final pago = ticket[index]['pago'];
+                final evento = ticket[index]['evento'];
+                return _boletos(evento, pago);
+              },
+            ),
       floatingActionButton: FloatingActionButton(
+        splashColor: Colors.green,
         onPressed: _navigateToHistorialPagos,
-        child: Icon(Icons.history),
-        backgroundColor: Colors.deepPurple,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 5,
+            ),
+            Icon(Icons.history),
+            Text(
+              'Historial',
+              style: GoogleFonts.montserrat(fontSize: 11),
+            )
+          ],
+        ),
+        backgroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _boletos(dynamic evento, dynamic pago) {
+    if (evento == null) return Container();
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Color.fromARGB(255, 58, 18, 74),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromARGB(255, 58, 18, 74),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          SizedBox(width: 10), // Espacio entre la imagen y el texto
+          Expanded(
+            child: ListTile(
+              contentPadding: EdgeInsets.all(7.0),
+              title: Text(
+                evento['nombre_evento'],
+                style: GoogleFonts.montserrat(
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              trailing: Icon(
+                size: 36,
+                Icons.confirmation_number,
+                color: getIconColor(evento['tipo_evento']),
+              ),
+              onTap: () {
+                _codeqr(evento, pago);
+                print(_codeqr);
+              },
+            ),
+          ),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(15.0),
+                bottomRight: Radius.circular(15.0)),
+            child: Image.network(
+              evento['imagen_url'],
+              width: 140,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
       ),
     );
   }

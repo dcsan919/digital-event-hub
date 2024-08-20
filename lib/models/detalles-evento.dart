@@ -3,7 +3,7 @@ class DetallesEvento {
   final int? evento_id;
   final String? descripcion;
   final String? requerimientos;
-  final String? precio;
+  final int? precio;
   final String? nombre_evento;
   final DateTime? fecha_inicio;
   final DateTime? fecha_termino;
@@ -39,7 +39,9 @@ class DetallesEvento {
       evento_id: json['evento_id'] as int?,
       descripcion: json['descripcion'] as String?,
       requerimientos: json['requerimientos'] as String?,
-      precio: json['precio'] as String?,
+      precio: json['Precio'] != null
+          ? (double.tryParse(json['Precio']))!.toInt()
+          : 0,
       nombre_evento: json['nombre_evento'] as String?,
       fecha_inicio: json['fecha_inicio'] != null
           ? DateTime.parse(json['fecha_inicio'])

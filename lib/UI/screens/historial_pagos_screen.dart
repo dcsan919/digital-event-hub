@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
@@ -7,8 +8,11 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class HistorialPagosScreen extends StatefulWidget {
+  final int userId;
+
+  HistorialPagosScreen({required this.userId});
   @override
-  _HistorialPagosScreenState createState() => _HistorialPagosScreenState();
+  State<HistorialPagosScreen> createState() => _HistorialPagosScreenState();
 }
 
 class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
@@ -18,13 +22,13 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
   @override
   void initState() {
     super.initState();
-    fetchHistorialPagos();
+    fetchHistorialPagos(widget.userId);
   }
 
-  Future<void> fetchHistorialPagos() async {
+  Future<void> fetchHistorialPagos(int userId) async {
     try {
       final response = await http.get(Uri.parse(
-          'https://api-digitalevent.onrender.com/api/pagos/historialpagos'));
+          'https://api-digitalevent.onrender.com/api/pagos/historial/$userId'));
 
       if (response.statusCode == 200) {
         List decodedPagos = jsonDecode(response.body);
@@ -84,11 +88,6 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
                   'Fecha Expiración: ${pago['fecha_expiracion'].substring(0, 10)}',
                   style: TextStyle(fontSize: 16),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Usuario ID: ${pago['usuario_id']}',
-                  style: TextStyle(fontSize: 16),
-                ),
               ],
             ),
           ),
@@ -136,14 +135,14 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
+                  pw.Text('Historial de compra',
+                      style: pw.TextStyle(fontSize: 20)),
                   pw.Text('Monto: \$${pago['monto']}',
                       style: pw.TextStyle(fontSize: 16)),
                   pw.Text('Fecha: ${pago['fecha'].substring(0, 10)}',
                       style: pw.TextStyle(fontSize: 16)),
                   pw.Text(
                       'Fecha Expiración: ${pago['fecha_expiracion'].substring(0, 10)}',
-                      style: pw.TextStyle(fontSize: 16)),
-                  pw.Text('Usuario ID: ${pago['usuario_id']}',
                       style: pw.TextStyle(fontSize: 16)),
                   pw.SizedBox(height: 8),
                 ],
@@ -159,12 +158,23 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
     );
   }
 
+  String _calculateAmount(String monto) {
+    final double amount = double.parse(monto); // Convertir de String a double
+    final calculatedAmount = amount / 100; // Realizar la operación aritmética
+    return calculatedAmount.toStringAsFixed(2);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Historial de Pagos'),
-        backgroundColor: Colors.deepPurple,
+        title: Text(
+          'Historial de Pagos',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
       ),
       body: pagos.isEmpty
           ? Center(child: CircularProgressIndicator())
@@ -175,6 +185,7 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
                 bool isReviewed = pago['isReviewed'] ?? false;
 
                 return Card(
+                  color: Colors.white,
                   margin: EdgeInsets.all(10),
                   elevation: 2,
                   child: ListTile(
@@ -183,14 +194,13 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
                       isReviewed ? Icons.check_circle : Icons.info,
                       color: isReviewed ? Colors.green : Colors.orange,
                     ),
-                    title: Text('Monto: \$${pago['monto']}'),
+                    title: Text('Monto: \$${_calculateAmount(pago['monto'])}'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Fecha: ${pago['fecha'].substring(0, 10)}'),
                         Text(
                             'Fecha Expiración: ${pago['fecha_expiracion'].substring(0, 10)}'),
-                        Text('Usuario ID: ${pago['usuario_id']}'),
                         if (!isReviewed)
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),

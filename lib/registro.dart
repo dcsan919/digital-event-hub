@@ -15,8 +15,8 @@ class _RegistroState extends State<Registro> {
   final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contrasenaController = TextEditingController();
-  final TextEditingController _confirmarContrasenaController = TextEditingController();
-  bool _isChecked = false;
+  final TextEditingController _confirmarContrasenaController =
+      TextEditingController();
   int _selectedRolId = 1;
   int _selectedMembresiaId = 4;
 
@@ -28,7 +28,8 @@ class _RegistroState extends State<Registro> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.96.1:5000/api/register'), // Reemplaza con tu IP local
+        Uri.parse(
+            'http://192.168.96.1:5000/api/register'), // Reemplaza con tu IP local
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -64,7 +65,9 @@ class _RegistroState extends State<Registro> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const Login()), // Asegúrate de que Login está definido
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const Login()), // Asegúrate de que Login está definido
                 );
               },
               child: const Text('OK'),
@@ -118,7 +121,8 @@ class _RegistroState extends State<Registro> {
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFF7F5FC1)), // Color igual al login
+          prefixIcon: Icon(icon,
+              color: const Color(0xFF7F5FC1)), // Color igual al login
           hintText: hint,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(50),
@@ -143,7 +147,9 @@ class _RegistroState extends State<Registro> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const Login()), // Navega a la pantalla de inicio de sesión
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const Login()), // Navega a la pantalla de inicio de sesión
             );
           },
         ),
@@ -176,7 +182,8 @@ class _RegistroState extends State<Registro> {
             ),
             Container(
               width: width,
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
+              padding: const EdgeInsets.only(
+                  left: 20, right: 20, top: 10, bottom: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
@@ -237,11 +244,13 @@ class _RegistroState extends State<Registro> {
                         ElevatedButton(
                           onPressed: _register,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7F5FC1), // Color igual al login
+                            backgroundColor:
+                                const Color(0xFF7F5FC1), // Color igual al login
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 30),
                           ),
                           child: const Text(
                             'Registrarse',
