@@ -12,6 +12,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import '../themes/tipo_boleto.dart';
 import 'package:provider/provider.dart';
 import 'package:deh_client/providers/ticketProvider.dart';
+import 'package:dotted_border/dotted_border.dart';
 
 class Carrito extends StatefulWidget {
   final int userId;
@@ -45,12 +46,6 @@ class _CarritoState extends State<Carrito> {
 
         String? paymentIntentClientSecret =
             await StripeServices.instance.makePaymeny(evento.precio!, 'mxn');
-        /*PaymentRequest newPaymentRequest = PaymentRequest(
-            amount: 1000,
-            currency: 'usd',
-            descripcion: 'Compra de boleto para ${evento.nombre_evento}',
-            usuarioId: widget.userId,
-            eventoId: evento.evento_id!);*/
 
         if (paymentIntentClientSecret != null) {
           _handlePayment(eventoId, evento);
@@ -233,7 +228,8 @@ class _CarritoState extends State<Carrito> {
       ),
       body: Column(
         children: [
-          const Text("Boletos disponibles"),
+          Text("Boletos agregados",
+              style: GoogleFonts.montserrat(fontSize: 17)),
           const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
@@ -251,17 +247,27 @@ class _CarritoState extends State<Carrito> {
 
   Widget _boletos(Ticket evento) {
     return Dismissible(
-      key: Key(evento.id.toString()),
+      key: UniqueKey(),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
         setState(() {
-          context
-              .read<TicketProvider>()
-              .removeTicket(evento); // Aquí se elimina el boleto del carrito
+          context.read<TicketProvider>().removeTicket(evento);
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${evento.name} eliminado del carrito')),
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 8),
+                Text('${evento.name} eliminado del carrito'),
+              ],
+            ),
+          ),
         );
       },
       background: Container(
@@ -271,59 +277,130 @@ class _CarritoState extends State<Carrito> {
         child: Icon(Icons.delete, color: Colors.white),
       ),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 58, 18, 74),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(5),
           boxShadow: const [
             BoxShadow(
-              color: Color.fromARGB(255, 58, 18, 74),
-              blurRadius: 10,
+              color: Color.fromARGB(200, 0, 0, 0),
+              blurRadius: 8,
+              spreadRadius: 1,
               offset: Offset(0, 5),
             ),
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(width: 10),
-            Expanded(
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(7.0),
-                title: Text(
-                  evento.name,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Inicia: ${DateFormat('yyyy-MM-dd').format(evento.fechaInicio)}',
-                      style: GoogleFonts.montserrat(color: Colors.white70),
-                    ),
-                  ],
-                ),
-                trailing: Icon(
-                  size: 35,
-                  Icons.confirmation_number,
-                  color: getIconColor(evento.tipoEvento),
-                ),
-                onTap: () {
-                  _showPurchaseDialog(evento.id);
-                },
-              ),
-            ),
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(15.0),
-                  bottomRight: Radius.circular(15.0)),
+                  topLeft: Radius.circular(5.0),
+                  topRight: Radius.circular(65.0),
+                  bottomLeft: Radius.circular(65.0),
+                  bottomRight: Radius.circular(65.0)),
               child: Image.network(
                 evento.imagenUrl,
-                width: 140,
-                height: 110,
+                width: 100,
+                height: 100,
                 fit: BoxFit.cover,
+              ),
+            ),
+            Expanded(
+              child: Stack(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.all(0),
+                    title: Center(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 10),
+                          Text(
+                            'POR: ${evento.organizador}',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            evento.name,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 15,
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 1
+                                ..color = Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 5),
+                        Container(
+                          width: 130,
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: getIconColor(evento.tipoEvento),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            "Precio: ${tipoPago(evento.precio)}",
+                            style: GoogleFonts.montserrat(
+                                color: getIconColor(evento.tipoEvento)),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
+                    trailing: Container(
+                      width: 80,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Positioned(
+                            right: 90,
+                            top: 0,
+                            bottom: 0,
+                            child: DottedBorder(
+                              color: Colors.white70,
+                              strokeWidth: 1,
+                              borderType: BorderType.Rect,
+                              child: SizedBox(
+                                height: 50,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      _showPurchaseDialog(evento.id);
+                    },
+                  ),
+                  Positioned(
+                    right: 60,
+                    top: 0,
+                    bottom: 0,
+                    child: DottedBorder(
+                      color: Colors.white70,
+                      strokeWidth: 2,
+                      borderType: BorderType.Rect,
+                      child: SizedBox(
+                        height: double.infinity,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

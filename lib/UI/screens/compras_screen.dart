@@ -237,7 +237,7 @@ class _ComprasScreenState extends State<ComprasScreen> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 10), // Espacio entre la imagen y el texto
+          SizedBox(width: 10),
           Expanded(
             child: ListTile(
               contentPadding: EdgeInsets.all(7.0),

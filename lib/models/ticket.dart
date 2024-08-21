@@ -4,7 +4,10 @@ class Ticket {
   final String imagenUrl;
   final DateTime fechaInicio;
   final String tipoEvento;
-  int quantity;
+  final String organizador;
+  final int precio;
+  final String asiento;
+  final int quantity;
 
   Ticket(
       {required this.id,
@@ -12,5 +15,8 @@ class Ticket {
       required this.imagenUrl,
       required this.fechaInicio,
       required this.tipoEvento,
-      this.quantity = 1});
+      required this.organizador,
+      required this.precio,
+      required this.asiento,
+      required this.quantity});
 }

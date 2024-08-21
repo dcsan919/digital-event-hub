@@ -67,17 +67,31 @@ class _SidebarState extends State<Sidebar> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundImage: usuario.fotoPerfil != null
-                              ? NetworkImage(usuario.fotoPerfil!)
-                              : null,
-                          child: usuario.fotoPerfil == null
-                              ? Icon(Icons.account_circle,
-                                  size: 50, color: Colors.grey[700])
-                              : null,
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.5),
+                                spreadRadius: 7,
+                                blurRadius: 15,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundImage: usuario.fotoPerfil != null
+                                ? NetworkImage(usuario.fotoPerfil!)
+                                : null,
+                            child: usuario.fotoPerfil == null
+                                ? Icon(Icons.account_circle,
+                                    size: 50, color: Colors.grey[700])
+                                : null,
+                          ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 8),
                         Flexible(
                           child: Text(
                             '${usuario.nombre} ${usuario.lastName}',

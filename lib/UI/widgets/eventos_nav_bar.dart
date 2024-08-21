@@ -15,7 +15,15 @@ class _NabTopState extends State<NabTop> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 40),
+        const Divider(
+          color: Colors.white,
+          thickness: 0.2,
+          indent: 75,
+          endIndent: 110,
+        ),
+        SizedBox(
+          height: 3,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -24,12 +32,6 @@ class _NabTopState extends State<NabTop> {
             _buildTextButton(1, 'Comentarios'),
           ],
         ),
-        const Divider(
-          color: Colors.black,
-          thickness: 0.3,
-          indent: 20,
-          endIndent: 20,
-        )
       ],
     );
   }
@@ -47,7 +49,7 @@ class _NabTopState extends State<NabTop> {
               },
               style: ButtonStyle(
                 backgroundColor: isSelected
-                    ? WidgetStateProperty.all(Colors.black)
+                    ? WidgetStateProperty.all(Colors.transparent)
                     : WidgetStateProperty.all(Colors.transparent),
                 overlayColor: isSelected
                     ? WidgetStateProperty.all(Colors.transparent)
@@ -58,7 +60,7 @@ class _NabTopState extends State<NabTop> {
                 side: WidgetStateProperty.all(
                   BorderSide(
                     color: isSelected ? Colors.white : Colors.black,
-                    width: 0.5,
+                    width: 0.8,
                   ),
                 ),
               ),
@@ -67,7 +69,7 @@ class _NabTopState extends State<NabTop> {
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 16,
-                  color: isSelected ? Colors.white : Colors.black,
+                  color: isSelected ? Colors.white : Colors.white,
                 ),
               ),
             ),
