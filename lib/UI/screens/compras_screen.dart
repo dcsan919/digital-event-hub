@@ -1,4 +1,5 @@
 import 'package:deh_client/UI/screens/carrito.dart';
+import 'package:deh_client/UI/widgets/noEvents.dart';
 import 'package:deh_client/models/detalles-evento.dart';
 import 'package:deh_client/models/events.dart';
 import 'package:deh_client/models/ticket.dart';
@@ -6,6 +7,7 @@ import 'package:deh_client/repositories/detalles_evento_repository.dart';
 import 'package:deh_client/repositories/events_repository.dart';
 import 'package:deh_client/repositories/pago_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +16,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'historial_pagos_screen.dart';
 import '../themes/tipo_boleto.dart';
+import '../themes/cambiar_modo.dart';
 
 class ComprasScreen extends StatefulWidget {
   final int userId;
@@ -167,17 +170,18 @@ class _ComprasScreenState extends State<ComprasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: modoFondo ? black : white,
       appBar: AppBar(
-        surfaceTintColor: Colors.white,
-        backgroundColor: Colors.white,
+        surfaceTintColor: modoFondo ? black : white,
+        backgroundColor: modoFondo ? black : white,
         title: Text(
           'Tus boletos',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+          style: GoogleFonts.montserrat(
+              fontWeight: FontWeight.bold, color: modoFondo ? white : black),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.shopping_cart, color: Colors.black),
+            icon: Icon(Icons.shopping_cart, color: modoFondo ? white : black),
             onPressed: () {
               Navigator.push(
                   context,
@@ -189,16 +193,19 @@ class _ComprasScreenState extends State<ComprasScreen> {
           ),
         ],
       ),
-      body: ticket.isEmpty
+      body: ticket == null
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: ticket.length,
-              itemBuilder: (context, index) {
-                final pago = ticket[index]['pago'];
-                final evento = ticket[index]['evento'];
-                return _boletos(evento, pago);
-              },
-            ),
+          : ticket.isEmpty
+              ? Center(
+                  child: noEvents('Aún no tienes boletos', Bootstrap.ticket))
+              : ListView.builder(
+                  itemCount: ticket.length,
+                  itemBuilder: (context, index) {
+                    final pago = ticket[index]['pago'];
+                    final evento = ticket[index]['evento'];
+                    return _boletos(evento, pago);
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
         splashColor: Colors.green,
         onPressed: _navigateToHistorialPagos,
@@ -207,14 +214,18 @@ class _ComprasScreenState extends State<ComprasScreen> {
             SizedBox(
               height: 5,
             ),
-            Icon(Icons.history),
+            Icon(
+              Icons.history,
+              color: modoFondo ? white : black,
+            ),
             Text(
               'Historial',
-              style: GoogleFonts.montserrat(fontSize: 11),
+              style: GoogleFonts.montserrat(
+                  fontSize: 11, color: modoFondo ? white : black),
             )
           ],
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: modoFondo ? black : white,
       ),
     );
   }

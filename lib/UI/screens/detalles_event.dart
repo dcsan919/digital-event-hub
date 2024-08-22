@@ -1,3 +1,4 @@
+import 'package:deh_client/UI/screens/asientos.dart';
 import 'package:deh_client/UI/screens/carrito.dart';
 import 'package:deh_client/UI/screens/comentarios.dart';
 import 'package:deh_client/UI/themes/tipo_boleto.dart';
@@ -11,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/detalles-evento.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../ui/themes/cambiar_modo.dart';
 
 class DetallesEventos extends StatefulWidget {
   final int eventoId;
@@ -93,6 +95,7 @@ class _DetallesEventosState extends State<DetallesEventos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: modoFondo ? black : white,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(130.0),
         child: Stack(
@@ -182,6 +185,11 @@ Widget _getSectionContent(
         eventoId: eventoId,
         userId: userId,
       );
+    case 2:
+      return AsientosScreen(
+        eventoId: eventoId,
+        userId: userId,
+      );
     default:
       return DetallesEventContent(
         detallesEventFuture: futureEvento,
@@ -193,6 +201,7 @@ Widget _getSectionContent(
   }
 }
 
+// ignore: must_be_immutable
 class DetallesEventContent extends StatelessWidget {
   final Future<DetallesEvento> detallesEventFuture;
   final Function(Ticket ticket) onAddToCart;

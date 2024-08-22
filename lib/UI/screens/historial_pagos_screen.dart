@@ -1,7 +1,9 @@
+import 'package:deh_client/UI/widgets/noEvents.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:icons_plus/icons_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -176,49 +178,53 @@ class _HistorialPagosScreenState extends State<HistorialPagosScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
       ),
-      body: pagos.isEmpty
+      body: pagos == null
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: pagos.length,
-              itemBuilder: (context, index) {
-                final pago = pagos[index];
-                bool isReviewed = pago['isReviewed'] ?? false;
+          : pagos.isEmpty
+              ? Center(
+                  child: noEvents('No hay historial', Bootstrap.card_checklist))
+              : ListView.builder(
+                  itemCount: pagos.length,
+                  itemBuilder: (context, index) {
+                    final pago = pagos[index];
+                    bool isReviewed = pago['isReviewed'] ?? false;
 
-                return Card(
-                  color: Colors.white,
-                  margin: EdgeInsets.all(10),
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.all(16),
-                    leading: Icon(
-                      isReviewed ? Icons.check_circle : Icons.info,
-                      color: isReviewed ? Colors.green : Colors.orange,
-                    ),
-                    title: Text('Monto: \$${_calculateAmount(pago['monto'])}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Fecha: ${pago['fecha'].substring(0, 10)}'),
-                        Text(
-                            'Fecha Expiración: ${pago['fecha_expiracion'].substring(0, 10)}'),
-                        if (!isReviewed)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'No revisado',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
+                    return Card(
+                      color: Colors.white,
+                      margin: EdgeInsets.all(10),
+                      elevation: 2,
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(16),
+                        leading: Icon(
+                          isReviewed ? Icons.check_circle : Icons.info,
+                          color: isReviewed ? Colors.green : Colors.orange,
+                        ),
+                        title:
+                            Text('Monto: \$${_calculateAmount(pago['monto'])}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Fecha: ${pago['fecha'].substring(0, 10)}'),
+                            Text(
+                                'Fecha Expiración: ${pago['fecha_expiracion'].substring(0, 10)}'),
+                            if (!isReviewed)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  'No revisado',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    onTap: () => _showPaymentDetails(pago),
-                  ),
-                );
-              },
-            ),
+                          ],
+                        ),
+                        onTap: () => _showPaymentDetails(pago),
+                      ),
+                    );
+                  },
+                ),
       floatingActionButton: _isExtended
           ? Column(
               mainAxisAlignment: MainAxisAlignment.end,

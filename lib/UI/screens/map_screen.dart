@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import '../themes/cambiar_modo.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -25,6 +28,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _loadEvents();
+    _determinePosition();
   }
 
   Future<void> _loadEvents() async {
@@ -86,6 +90,56 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Verifica si los servicios de ubicación están habilitados
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return;
+    }
+
+    // Verifica los permisos de ubicación
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
+
+    // Obtén la posición actual
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentPosition = LatLng(position.latitude, position.longitude);
+
+      // Verifica si el marcador ya existe
+      if (_markers
+          .any((marker) => marker.markerId == MarkerId("currentLocation"))) {
+        _markers.removeWhere(
+            (marker) => marker.markerId == MarkerId("currentLocation"));
+      }
+
+      // Añade el marcador de la ubicación actual
+      _markers.add(Marker(
+        markerId: MarkerId("currentLocation"),
+        position: _currentPosition,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(title: "Estás aquí"),
+      ));
+    });
+
+    // Mueve la cámara del mapa a la ubicación actual
+    _controller?.animateCamera(
+      CameraUpdate.newLatLngZoom(_currentPosition, 15),
+    );
+  }
+
   void _addMarkers(List<Map<String, dynamic>> events) {
     _markers.addAll(events.map((event) {
       final location = event['ubicacion'];
@@ -103,8 +157,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   LatLng _getLatLng(String location) {
-    // Implementa la lógica para convertir la dirección a LatLng usando la API de Geocoding
-    return LatLng(20.5784451, -90.0081358); // Ejemplo
+    return LatLng(20.5784451, -90.0081358);
   }
 
   Future<void> _showDirections(LatLng destination) async {
@@ -236,6 +289,7 @@ class _MapScreenState extends State<MapScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
+          color: modoFondo ? black : white,
           height: MediaQuery.of(context).size.height * 0.5,
           child: ListView.builder(
             itemCount: _events.length,
@@ -248,13 +302,20 @@ class _MapScreenState extends State<MapScreen> {
                       : null,
                   child: event['imagen_url'] == null ? Icon(Icons.event) : null,
                 ),
-                title: Text(event['nombre_evento'] ?? 'Nombre no disponible'),
+                title: Text(event['nombre_evento'] ?? 'Nombre no disponible',
+                    style: GoogleFonts.montserrat(
+                        color: modoFondo ? Colors.white : Colors.black)),
                 subtitle: Text(
-                  'Inicio: ${event['fecha_inicio'] ?? 'Fecha no disponible'} - Fin: ${event['fecha_termino'] ?? 'Fecha no disponible'}',
-                ),
-                trailing: Text(event['ubicacion'] ?? 'Ubicación no disponible'),
+                    'Inicio: ${event['fecha_inicio'] ?? 'Fecha no disponible'} - Fin: ${event['fecha_termino'] ?? 'Fecha no disponible'}',
+                    style: GoogleFonts.montserrat(
+                        color: modoFondo ? Colors.white : Colors.black)),
+                trailing: Text(event['ubicacion'] ?? 'Ubicación no disponible',
+                    style: GoogleFonts.montserrat(
+                        color: modoFondo ? Colors.white : Colors.black)),
                 onTap: () {
-                  final LatLng eventPosition = _getLatLng(event['ubicacion']);
+                  final LatLng eventPosition = _getLatLng(
+                    event['ubicacion'],
+                  );
                   _showDirections(eventPosition);
                 },
               );
@@ -324,10 +385,18 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mapa de Eventos'),
+        backgroundColor: modoFondo ? black : white,
+        title: Text(
+          'Mapa de Eventos',
+          style: GoogleFonts.montserrat(
+              color: modoFondo ? white : black, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: Icon(
+              Icons.search,
+              color: modoFondo ? white : black,
+            ),
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
@@ -355,16 +424,27 @@ class _MapScreenState extends State<MapScreen> {
             left: 10,
             right: 10,
             child: Container(
+              decoration: BoxDecoration(
+                  color: modoFondo
+                      ? black.withOpacity(0.5)
+                      : white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.all(8.0),
-              color: Colors.white.withOpacity(0.7),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Buscar ubicación',
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: _searchLocation,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                child: TextField(
+                  style: TextStyle(color: modoFondo ? white : black),
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar ubicación',
+                    hintStyle: TextStyle(color: modoFondo ? white : black),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.search,
+                        color: modoFondo ? white : black,
+                      ),
+                      onPressed: _searchLocation,
+                    ),
                   ),
                 ),
               ),
@@ -377,8 +457,15 @@ class _MapScreenState extends State<MapScreen> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
+                style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStatePropertyAll(modoFondo ? black : white)),
                 onPressed: () => _showEventBottomSheet(context),
-                child: Text('Mostrar Eventos'),
+                child: Text(
+                  'Mostrar Eventos',
+                  style:
+                      GoogleFonts.montserrat(color: modoFondo ? white : black),
+                ),
               ),
             ),
           ),

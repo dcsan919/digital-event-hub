@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Widget noEvents(String text) {
+Widget noEvents(String text, IconData icon) {
   return Center(
     child: Container(
       child: Column(
@@ -14,7 +14,7 @@ Widget noEvents(String text) {
             height: 10,
           ),
           Icon(
-            Icons.search_off,
+            icon,
             size: 40,
           ),
         ],

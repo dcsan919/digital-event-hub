@@ -277,6 +277,7 @@ class _CarritoState extends State<Carrito> {
         child: Icon(Icons.delete, color: Colors.white),
       ),
       child: Container(
+        height: 127,
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 58, 18, 74),
@@ -297,7 +298,7 @@ class _CarritoState extends State<Carrito> {
               borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(5.0),
                   topRight: Radius.circular(65.0),
-                  bottomLeft: Radius.circular(65.0),
+                  bottomLeft: Radius.circular(0.0),
                   bottomRight: Radius.circular(65.0)),
               child: Image.network(
                 evento.imagenUrl,
@@ -333,50 +334,38 @@ class _CarritoState extends State<Carrito> {
                                 ..color = Colors.white,
                             ),
                           ),
+                          SizedBox(height: 5),
+                          Container(
+                            width: 130,
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: getIconColor(evento.tipoEvento),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              "Precio: ${tipoPago(evento.precio)}",
+                              style: GoogleFonts.montserrat(
+                                  color: getIconColor(evento.tipoEvento)),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 5),
-                        Container(
-                          width: 130,
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                              color: getIconColor(evento.tipoEvento),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Text(
-                            "Precio: ${tipoPago(evento.precio)}",
-                            style: GoogleFonts.montserrat(
-                                color: getIconColor(evento.tipoEvento)),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                      ],
-                    ),
                     trailing: Container(
-                      width: 80,
+                      width: 40,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Positioned(
-                            right: 90,
-                            top: 0,
-                            bottom: 0,
-                            child: DottedBorder(
-                              color: Colors.white70,
-                              strokeWidth: 1,
-                              borderType: BorderType.Rect,
-                              child: SizedBox(
-                                height: 50,
-                                width: 2,
-                              ),
+                          DottedBorder(
+                            color: Colors.white70,
+                            strokeWidth: 1,
+                            borderType: BorderType.Rect,
+                            child: SizedBox(
+                              height: 50,
+                              width: 2,
                             ),
                           ),
                         ],
@@ -387,7 +376,7 @@ class _CarritoState extends State<Carrito> {
                     },
                   ),
                   Positioned(
-                    right: 60,
+                    right: 50,
                     top: 0,
                     bottom: 0,
                     child: DottedBorder(

@@ -14,11 +14,11 @@ class _RegistroState extends State<Registro> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _contrasenaController = TextEditingController();
   final TextEditingController _confirmarContrasenaController =
       TextEditingController();
-  int _selectedRolId = 1;
-  int _selectedMembresiaId = 4;
+  int _selectedRolId = 2;
 
   Future<void> _register() async {
     if (_contrasenaController.text != _confirmarContrasenaController.text) {
@@ -28,18 +28,17 @@ class _RegistroState extends State<Registro> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-            'http://192.168.96.1:5000/api/register'), // Reemplaza con tu IP local
+        Uri.parse('https://api-digitalevent.onrender.com/api/users/register'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'name': _nombreController.text,
+          'nombre': _nombreController.text,
           'email': _emailController.text,
-          'password': _contrasenaController.text,
-          'phone': int.parse(_telefonoController.text),
-          'role_id': _selectedRolId,
-          'membresia_id': _selectedMembresiaId,
+          'last_name': _lastNameController.text,
+          'contrasena': _contrasenaController.text,
+          'telefono': _telefonoController.text,
+          'rol_id': _selectedRolId,
         }),
       );
 
@@ -65,9 +64,7 @@ class _RegistroState extends State<Registro> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const Login()), // Asegúrate de que Login está definido
+                  MaterialPageRoute(builder: (context) => const Login()),
                 );
               },
               child: const Text('OK'),
@@ -121,8 +118,7 @@ class _RegistroState extends State<Registro> {
         controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon,
-              color: const Color(0xFF7F5FC1)), // Color igual al login
+          prefixIcon: Icon(icon, color: const Color(0xFF7F5FC1)),
           hintText: hint,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(50),
@@ -147,14 +143,12 @@ class _RegistroState extends State<Registro> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const Login()), // Navega a la pantalla de inicio de sesión
+              MaterialPageRoute(builder: (context) => const Login()),
             );
           },
         ),
       ),
-      backgroundColor: const Color(0xFF7F5FC1), // Color igual al login
+      backgroundColor: const Color(0xFF7F5FC1),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -216,6 +210,12 @@ class _RegistroState extends State<Registro> {
                         ),
                         const SizedBox(height: 20),
                         _buildTextInput(
+                          controller: _lastNameController,
+                          icon: Icons.person_2_sharp,
+                          hint: "Apellido",
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextInput(
                           controller: _telefonoController,
                           icon: Icons.phone,
                           hint: "Teléfono",
@@ -244,8 +244,7 @@ class _RegistroState extends State<Registro> {
                         ElevatedButton(
                           onPressed: _register,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color(0xFF7F5FC1), // Color igual al login
+                            backgroundColor: const Color(0xFF7F5FC1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),

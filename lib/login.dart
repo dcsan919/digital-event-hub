@@ -22,9 +22,6 @@ class _LoginState extends State<Login> {
   bool obscureText = true;
 
   void _login() async {
-    final String email = _emailController.text;
-    final String password = _passwordController.text;
-
     if (_formKey.currentState?.validate() ?? false) {
       final String email = _emailController.text;
       final String password = _passwordController.text;

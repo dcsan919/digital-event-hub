@@ -28,8 +28,10 @@ class _NabTopState extends State<NabTop> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildTextButton(0, 'Detalles'),
-            const SizedBox(width: 20),
+            const SizedBox(width: 5),
             _buildTextButton(1, 'Comentarios'),
+            const SizedBox(width: 5),
+            _buildTextButton(2, 'Asientos'),
           ],
         ),
       ],

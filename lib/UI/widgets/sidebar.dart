@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../screens/usuario_screen.dart';
 import 'package:deh_client/repositories/usuario_repository.dart';
 import '../../models/usuario.dart';
+import '../../UI/themes/cambiar_modo.dart';
 
 class Sidebar extends StatefulWidget {
   final int userId;
@@ -29,103 +30,105 @@ class _SidebarState extends State<Sidebar> {
     });
   }
 
+  void _modoFondo() {
+    setState(() {
+      modoFondo = !modoFondo;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          Container(
-            height: 280.0,
-            width: double.infinity,
-            child: FutureBuilder<Usuario>(
-              future: futureUser,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return DrawerHeader(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                } else if (snapshot.hasError) {
-                  return DrawerHeader(
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                } else if (snapshot.hasData) {
-                  final usuario = snapshot.data!;
-                  return DrawerHeader(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 239, 3, 211),
-                          Color.fromARGB(255, 134, 24, 153),
-                          Color.fromARGB(255, 58, 18, 74)
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+      backgroundColor: modoFondo ? Colors.black : Colors.white,
+      child: Container(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Container(
+              height: 280.0,
+              width: double.infinity,
+              child: FutureBuilder<Usuario>(
+                future: futureUser,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return DrawerHeader(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasError) {
+                    return DrawerHeader(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasData) {
+                    final usuario = snapshot.data!;
+                    return DrawerHeader(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 239, 3, 211),
+                            Color.fromARGB(255, 134, 24, 153),
+                            Color.fromARGB(255, 58, 18, 74)
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
-                                spreadRadius: 7,
-                                blurRadius: 15,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 60,
-                            backgroundImage: usuario.fotoPerfil != null
-                                ? NetworkImage(usuario.fotoPerfil!)
-                                : null,
-                            child: usuario.fotoPerfil == null
-                                ? Icon(Icons.account_circle,
-                                    size: 50, color: Colors.grey[700])
-                                : null,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Flexible(
-                          child: Text(
-                            '${usuario.nombre} ${usuario.lastName}',
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontSize: 24,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  spreadRadius: 7,
+                                  blurRadius: 15,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
+                            child: CircleAvatar(
+                              radius: 60,
+                              backgroundImage: usuario.fotoPerfil != null
+                                  ? NetworkImage(usuario.fotoPerfil!)
+                                  : null,
+                              child: usuario.fotoPerfil == null
+                                  ? Icon(Icons.account_circle,
+                                      size: 50, color: Colors.grey[700])
+                                  : null,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return SizedBox(); // Default widget if there's no data
-              },
+                          SizedBox(height: 8),
+                          Flexible(
+                            child: Text(
+                              '${usuario.nombre} ${usuario.lastName}',
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontSize: 24,
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return SizedBox(); // Default widget if there's no data
+                },
+              ),
             ),
-          ),
-          ListTile(
-            title: Text(
-              'Menú',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
+            ListTile(
+              title: Text(
+                'Menú',
+                style: GoogleFonts.montserrat(
+                    color: modoFondo ? Colors.white : Colors.black),
+              ),
+              tileColor: modoFondo ? Colors.black : Colors.grey[200],
             ),
-            tileColor: Colors.grey[200],
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text(
-              'Perfil Usuario',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
-            ),
-            onTap: () {
+            Divider(),
+            _listTitle(Icons.person, 'Perfil Usuarioo', () {
               Navigator.pop(context);
               Navigator.push(
                 context,
@@ -135,50 +138,53 @@ class _SidebarState extends State<Sidebar> {
                           usuario: widget.usuario,
                         )),
               );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text(
-              'Configuración',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
+            }),
+            _listTitle(
+                Icons.settings, 'Configuración', () => Navigator.pop(context)),
+            _listTitle(Icons.support, 'Soporte y capacitación',
+                () => Navigator.pop(context)),
+            _listTitle(
+                Icons.tune, 'Optimización', () => Navigator.pop(context)),
+            _listTitle(Icons.info, 'Acerca de', () => Navigator.pop(context)),
+            SizedBox(
+              height: 100,
             ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.support),
-            title: Text(
-              'Soporte y capacitación',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                IconButton(
+                    onPressed: () {
+                      _modoFondo();
+                    },
+                    icon: modoFondo
+                        ? Icon(
+                            Icons.nightlight,
+                            size: 35,
+                            color: Colors.white,
+                          )
+                        : Icon(
+                            Icons.light_mode,
+                            size: 35,
+                          )),
+              ],
             ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.tune),
-            title: Text(
-              'Optimización',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.info),
-            title: Text(
-              'Acerca de',
-              style: GoogleFonts.montserrat(), // Aplicar Google Fonts
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _listTitle(IconData icon, String text, Function() navigator) {
+    return ListTile(
+        leading: Icon(
+          icon,
+          color: modoFondo ? Colors.white : Colors.black,
+        ),
+        title: Text(
+          text,
+          style: GoogleFonts.montserrat(
+              color: modoFondo ? Colors.white : Colors.black),
+        ),
+        onTap: navigator);
   }
 }

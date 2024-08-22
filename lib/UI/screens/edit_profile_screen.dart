@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import '../../models/usuario.dart';
 import '../widgets/fotoPerfil.dart';
+import '../../ui/themes/cambiar_modo.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Usuario usuario;
@@ -133,7 +134,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.white,
+      backgroundColor: modoFondo ? black : white,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -215,10 +216,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   ? NetworkImage(
                                                       usuario.fotoPerfil!)
                                                   : null,
-                                          backgroundColor: Colors.white,
+                                          backgroundColor:
+                                              modoFondo ? black : white,
                                           child: usuario.fotoPerfil == null
                                               ? Icon(Icons.account_circle,
-                                                  size: 50,
+                                                  size: 175,
                                                   color: Colors.grey[700])
                                               : null,
                                         ),
@@ -256,7 +258,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         children: [
                           SizedBox(height: 10),
                           Text("Editar Información",
-                              style: GoogleFonts.montserrat(fontSize: 18)),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  color:
+                                      modoFondo ? Colors.white : Colors.black)),
                           SizedBox(height: 10),
                           CustomDivider(height: 1.5, width: 250),
                           SizedBox(height: 20),
@@ -264,7 +269,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: _nombreController,
                             decoration: InputDecoration(
                               labelText: 'Nombre',
-                              labelStyle: GoogleFonts.montaga(),
+                              labelStyle: GoogleFonts.montaga(
+                                  color:
+                                      modoFondo ? Colors.white : Colors.black),
                               prefixIcon: Icon(Icons.person,
                                   color:
                                       const Color.fromARGB(255, 150, 11, 145)),
@@ -272,7 +279,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            style: GoogleFonts.montaga(),
+                            style: GoogleFonts.montaga(
+                                color: modoFondo ? Colors.white : Colors.black),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor ingrese su nombre';
@@ -285,7 +293,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: _lastNameController,
                             decoration: InputDecoration(
                               labelText: 'Apellido',
-                              labelStyle: GoogleFonts.montaga(),
+                              labelStyle: GoogleFonts.montaga(
+                                  color:
+                                      modoFondo ? Colors.white : Colors.black),
                               prefixIcon: Icon(Icons.person_outline,
                                   color:
                                       const Color.fromARGB(255, 150, 11, 145)),
@@ -293,7 +303,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            style: GoogleFonts.montaga(),
+                            style: GoogleFonts.montaga(
+                                color: modoFondo ? Colors.white : Colors.black),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor ingrese su apellido';
@@ -305,7 +316,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           TextFormField(
                             controller: _telefonoController,
                             decoration: InputDecoration(
-                              labelStyle: GoogleFonts.montaga(),
+                              labelStyle: GoogleFonts.montaga(
+                                  color:
+                                      modoFondo ? Colors.white : Colors.black),
                               labelText: 'Teléfono',
                               prefixIcon: Icon(Icons.phone,
                                   color:
@@ -314,7 +327,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            style: GoogleFonts.montaga(),
+                            style: GoogleFonts.montaga(
+                                color: modoFondo ? Colors.white : Colors.black),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor ingrese su teléfono';

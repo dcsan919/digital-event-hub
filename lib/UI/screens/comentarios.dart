@@ -1,10 +1,11 @@
-import 'package:deh_client/UI/widgets/noEvents.dart';
-import 'package:deh_client/UI/widgets/noInternet.dart';
 import 'package:deh_client/models/comentarios.dart';
+import 'package:deh_client/models/usuario.dart';
 import 'package:deh_client/repositories/comentarios_repository.dart';
+import 'package:deh_client/repositories/usuario_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../ui/themes/cambiar_modo.dart';
 
 class Comentarios extends StatefulWidget {
   final int eventoId;
@@ -17,19 +18,37 @@ class Comentarios extends StatefulWidget {
 
 class _ComentariosState extends State<Comentarios> {
   final ComentariosRepository _comentariosRepository = ComentariosRepository();
-  late Future<List<Comentario>> _futureComentarios;
+  late Future<List<Comentario>> futureComentarios;
+  late Future<Map<Comentario, Usuario>> _fetchComentariosYUsuariosFuture;
+  final UsuarioRepository _usuarioRepository = UsuarioRepository();
+  late Future<Usuario> futureUsuario;
   TextEditingController _comentarioController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _fetchComentarios();
+    _fetchComentariosYUsuariosFuture = _fetchComentariosYUsuarios();
   }
 
   void _fetchComentarios() {
     setState(() {
-      _futureComentarios =
+      futureComentarios =
           _comentariosRepository.getComentariosByEventoId(widget.eventoId);
     });
+  }
+
+  Future<Map<Comentario, Usuario>> _fetchComentariosYUsuarios() async {
+    final comentarios =
+        await _comentariosRepository.getComentariosByEventoId(widget.eventoId);
+
+    final Map<Comentario, Usuario> comentariosYUsuarios = {};
+    for (final comentario in comentarios) {
+      final usuario =
+          await _usuarioRepository.getUserById(comentario.usuarioId!);
+      comentariosYUsuarios[comentario] = usuario;
+    }
+    return comentariosYUsuarios;
   }
 
   @override
@@ -58,9 +77,6 @@ class _ComentariosState extends State<Comentarios> {
         fecha: fecha,
       );
 
-      print(
-          "comentario: $comentario, fecha: $fecha, evento: $eventoId, usuario: $userId");
-
       await _comentariosRepository.postComentary(newComentario);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,11 +84,8 @@ class _ComentariosState extends State<Comentarios> {
       );
 
       _comentarioController.clear();
-      print('Cerrando modal');
       Navigator.pop(dialogContext);
-      print('Modal cerrado');
       _fetchComentarios();
-      print('Comentarios actualizados');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al agregar comentario: $e')),
@@ -95,7 +108,7 @@ class _ComentariosState extends State<Comentarios> {
                     Text(
                       'Comentarios',
                       style: GoogleFonts.montserrat(
-                          color: Colors.black,
+                          color: modoFondo ? white : black,
                           fontSize: 22,
                           fontWeight: FontWeight.bold),
                     ),
@@ -113,16 +126,15 @@ class _ComentariosState extends State<Comentarios> {
                           children: [
                             Text(
                               'Agregar',
-                              style:
-                                  GoogleFonts.montserrat(color: Colors.white),
+                              style: GoogleFonts.montserrat(color: white),
                             ),
-                            Icon(Icons.add, color: Colors.white)
+                            Icon(Icons.add, color: white)
                           ],
                         ))
                   ],
                 ),
-                const Divider(
-                  color: Colors.black,
+                Divider(
+                  color: modoFondo ? white : black,
                   thickness: 0.5,
                   indent: 0,
                   endIndent: 0,
@@ -130,24 +142,21 @@ class _ComentariosState extends State<Comentarios> {
               ],
             ),
           ),
-          FutureBuilder<List<Comentario>>(
-            future: _futureComentarios,
+          FutureBuilder<Map<Comentario, Usuario>>(
+            future: _fetchComentariosYUsuariosFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                final error = snapshot.error.toString();
-                if (error.contains('No hay conexión a Internet')) {
-                  return noInternet();
-                }
-                return Text('Error: $error');
+                return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return noEvents("No hay comentarios");
+                return Center(child: Text('No hay comentarios disponibles'));
               } else {
-                return _buildComentariosList(snapshot.data!);
+                final comentariosYUsuarios = snapshot.data!;
+                return _buildComentariosList(comentariosYUsuarios);
               }
             },
-          ),
+          )
         ],
       ),
     );
@@ -160,7 +169,7 @@ class _ComentariosState extends State<Comentarios> {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            backgroundColor: modoFondo ? black : white,
             content: Container(
                 height: MediaQuery.of(context).size.height * 0.4,
                 child: Padding(
@@ -170,23 +179,31 @@ class _ComentariosState extends State<Comentarios> {
                       SizedBox(height: 10),
                       Text(
                         'Agrega un comentario a este evento',
-                        style: GoogleFonts.montserrat(fontSize: 20),
+                        style: GoogleFonts.montserrat(
+                            fontSize: 20, color: modoFondo ? white : black),
                       ),
                       SizedBox(height: 15),
                       TextField(
                         controller: _comentarioController,
                         keyboardType: TextInputType.multiline,
+                        style: TextStyle(
+                          color: modoFondo ? white : black,
+                        ),
                         maxLines: null,
                         minLines: 6,
                         decoration: InputDecoration(
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide:
-                                  BorderSide(color: Colors.green, width: 1),
-                            ),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            hintText: 'Escribe un comentario...'),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide:
+                                BorderSide(color: Colors.green, width: 1),
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15)),
+                          hintText: 'Escribe un comentario...',
+                          hintStyle: TextStyle(
+                            color: modoFondo ? white : black,
+                          ),
+                        ),
                       ),
                       SizedBox(height: 15),
                       Row(
@@ -236,18 +253,20 @@ class _ComentariosState extends State<Comentarios> {
     );
   }
 
-  Widget _buildComentariosList(List<Comentario> comentarios) {
+  Widget _buildComentariosList(Map<Comentario, Usuario> comentariosYUsuarios) {
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
-      itemCount: comentarios.length,
+      itemCount: comentariosYUsuarios.length,
       itemBuilder: (context, index) {
-        return _buildComentario(comentarios[index]);
+        final comentario = comentariosYUsuarios.keys.elementAt(index);
+        final usuario = comentariosYUsuarios[comentario]!;
+        return _buildComentario(comentario, usuario);
       },
     );
   }
 
-  Widget _buildComentario(Comentario comentario) {
+  Widget _buildComentario(Comentario comentario, Usuario usuario) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
@@ -255,18 +274,47 @@ class _ComentariosState extends State<Comentarios> {
           color: Colors.grey[900],
           borderRadius: BorderRadius.circular(10),
         ),
-        child: ListTile(
-          title: Text(
-            '${comentario.comentario}',
-            style: GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
-          ),
-          subtitle: Text(
-            'Por: ${comentario.usuarioNombre ?? 'Desconocido'}',
-            style: GoogleFonts.montserrat(color: Colors.white54, fontSize: 12),
-          ),
-          trailing: Text(DateFormat('yyyy-MM-dd').format(comentario.fecha!),
-              style:
-                  GoogleFonts.montserrat(color: Colors.white54, fontSize: 12)),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 8,
+            ),
+            ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(100)),
+              child:
+                  usuario.fotoPerfil != null && usuario.fotoPerfil!.isNotEmpty
+                      ? Image.network(
+                          usuario.fotoPerfil!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        )
+                      : const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.white,
+                        ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text(
+                  '${comentario.comentario}',
+                  style:
+                      GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
+                ),
+                subtitle: Text(
+                  'Por: ${comentario.usuarioNombre ?? 'Desconocido'}',
+                  style: GoogleFonts.montserrat(
+                      color: Colors.grey[500], fontSize: 12),
+                ),
+                trailing: Text(
+                  DateFormat('yyyy-MM-dd').format(comentario.fecha!),
+                  style:
+                      GoogleFonts.montserrat(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

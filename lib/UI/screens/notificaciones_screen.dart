@@ -1,3 +1,4 @@
+import 'package:deh_client/UI/themes/cambiar_modo.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -134,17 +135,20 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title:
-              Text('Detalles de Notificación', style: GoogleFonts.montserrat()),
+          backgroundColor: modoFondo ? black : white,
+          title: Text('Detalles de Notificación',
+              style: GoogleFonts.montserrat(color: modoFondo ? white : black)),
           content: Container(
+            color: modoFondo ? black : white,
             width: double.maxFinite,
             child: ListView.builder(
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notification = notifications[index];
                 return Card(
+                  color: modoFondo ? Colors.grey[900] : white,
                   margin: EdgeInsets.all(10),
-                  elevation: 8, // Ajusta la elevación para efecto 3D
+                  elevation: 8,
                   shadowColor:
                       Colors.black.withOpacity(0.3), // Color de la sombra
                   shape: RoundedRectangleBorder(
@@ -153,10 +157,12 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                   child: ListTile(
                     contentPadding: EdgeInsets.all(16),
                     title: Text(notification['mensaje'],
-                        style: GoogleFonts.montserrat()),
+                        style: GoogleFonts.montserrat(
+                            color: modoFondo ? white : black)),
                     subtitle: Text(
                         'Fecha de envío: ${notification['fecha_envio'].substring(0, 10)}',
-                        style: GoogleFonts.montserrat()),
+                        style: GoogleFonts.montserrat(
+                            color: modoFondo ? Colors.grey[600] : black)),
                     onTap: () {},
                   ),
                 );
@@ -180,9 +186,12 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: modoFondo ? black : white,
       appBar: AppBar(
-        title: Text('Notificaciones', style: GoogleFonts.montserrat()),
-        backgroundColor: Color.fromARGB(255, 236, 231, 237),
+        title: Text('Notificaciones',
+            style: GoogleFonts.montserrat(
+                color: modoFondo ? white : black, fontWeight: FontWeight.bold)),
+        backgroundColor: modoFondo ? black : white,
       ),
       body: notificaciones.isEmpty
           ? Center(child: CircularProgressIndicator())
@@ -193,6 +202,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                 final isNew = notificacion['isNew'] as bool? ?? false;
 
                 return Card(
+                  color: modoFondo ? Colors.grey[900] : white,
                   margin: EdgeInsets.all(10),
                   elevation: 8, // Ajusta la elevación para efecto
                   shadowColor:
@@ -204,11 +214,19 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                     contentPadding: EdgeInsets.all(16),
                     title: Text(notificacion['mensaje'],
                         style: GoogleFonts.montserrat(
-                            color: isNew ? Colors.blue : Colors.black)),
+                            color: isNew
+                                ? Colors.blue
+                                : modoFondo
+                                    ? Colors.white
+                                    : black)),
                     subtitle: Text(
                         'Fecha de envío: ${notificacion['fecha_envio'].substring(0, 10)}',
                         style: GoogleFonts.montserrat(
-                            color: isNew ? Colors.blue : Colors.black)),
+                            color: isNew
+                                ? Colors.blue
+                                : modoFondo
+                                    ? Colors.grey[500]
+                                    : Colors.grey[900])),
                     onTap: () {
                       _showNotificationDetails(notificacion['details']);
                       if (isNew) {

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/usuario.dart';
 import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
+import '../themes/cambiar_modo.dart';
 
 class UsuarioScreen extends StatefulWidget {
   final Usuario usuario;
@@ -92,7 +93,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.white,
+      backgroundColor: modoFondo ? black : white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -179,10 +180,10 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                                   backgroundImage: usuario.fotoPerfil != null
                                       ? NetworkImage(usuario.fotoPerfil!)
                                       : null,
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: modoFondo ? black : white,
                                   child: usuario.fotoPerfil == null
                                       ? Icon(Icons.account_circle,
-                                          size: 50, color: Colors.grey[700])
+                                          size: 150, color: Colors.grey[700])
                                       : null,
                                 ),
                               ),

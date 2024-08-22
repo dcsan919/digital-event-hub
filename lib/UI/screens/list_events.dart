@@ -12,6 +12,7 @@ import '../../models/usuario.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:icons_plus/icons_plus.dart';
 import '../themes/tipo_boleto.dart';
+import '../themes/cambiar_modo.dart';
 
 // ignore: must_be_immutable
 class ListEvent extends StatefulWidget {
@@ -29,7 +30,6 @@ class _ListEventState extends State<ListEvent> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final EventsRepository _eventsRepository = EventsRepository();
   late Future<List<ListEvents>> _eventsFuture;
-  final _colorWhite = Colors.white;
   final TextEditingController _nombreController = TextEditingController();
   final List<Widget> eventos = <Widget>[
     const Center(
@@ -159,18 +159,24 @@ class _ListEventState extends State<ListEvent> {
             _selectedHora != null && _selectedHora!.isNotEmpty;
     return Scaffold(
         key: _scaffoldKey,
-        backgroundColor: _colorWhite,
+        backgroundColor: modoFondo ? black : white,
         appBar: AppBar(
-          backgroundColor: _colorWhite,
+          backgroundColor: modoFondo ? black : white,
           toolbarHeight: 90,
           automaticallyImplyLeading: false,
-          surfaceTintColor: _colorWhite,
+          surfaceTintColor: modoFondo ? black : white,
           title: Padding(
             padding: const EdgeInsets.all(15),
             child: TextField(
               controller: _nombreController,
+              style: TextStyle(
+                color: modoFondo ? white : black,
+              ),
               decoration: InputDecoration(
                   labelText: 'Buscar eventos',
+                  labelStyle: TextStyle(
+                    color: modoFondo ? white : black,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -180,13 +186,15 @@ class _ListEventState extends State<ListEvent> {
                         onPressed: () {
                           _scaffoldKey.currentState?.openDrawer();
                         },
-                        icon: Icon(Icons.menu),
+                        icon:
+                            Icon(Icons.menu, color: modoFondo ? white : black),
                       )),
                   suffixIcon: IconButton(
                       onPressed: () {
                         _fetchFilteredEventsName(_nombreController.text);
                       },
-                      icon: Icon(Icons.search))),
+                      icon: Icon(Icons.search,
+                          color: modoFondo ? Colors.white : Colors.black))),
             ),
           ),
         ),
@@ -204,6 +212,7 @@ class _ListEventState extends State<ListEvent> {
                   Expanded(
                     child: Text("Lista de eventos",
                         style: GoogleFonts.montserrat(
+                            color: modoFondo ? white : black,
                             textStyle: TextStyle(
                                 fontSize: 22, fontWeight: FontWeight.bold))),
                   ),
@@ -227,7 +236,11 @@ class _ListEventState extends State<ListEvent> {
                           ? Color(0xFF3A124A)
                           : Colors.transparent,
                       side: BorderSide(
-                          color: hasActiveFilters ? Colors.white : Colors.black,
+                          color: hasActiveFilters
+                              ? Colors.transparent
+                              : modoFondo
+                                  ? white
+                                  : black,
                           width: 0.6),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 25, vertical: 5),
@@ -235,7 +248,11 @@ class _ListEventState extends State<ListEvent> {
                     child: Text(
                       'Filtros',
                       style: TextStyle(
-                        color: hasActiveFilters ? Colors.white : Colors.black,
+                        color: hasActiveFilters
+                            ? white
+                            : modoFondo
+                                ? white
+                                : black,
                         fontSize: 16,
                       ),
                     ),
@@ -249,10 +266,10 @@ class _ListEventState extends State<ListEvent> {
                     borderRadius: BorderRadius.circular(20),
                     fillColor: const Color(0xFF3A124A),
                     selectedColor: Colors.white,
-                    color: Colors.black,
+                    color: modoFondo ? white : black,
                     borderWidth: 1,
-                    selectedBorderColor: Colors.black,
-                    borderColor: Colors.black,
+                    selectedBorderColor: modoFondo ? white : black,
+                    borderColor: modoFondo ? white : black,
                     children: eventos,
                     isSelected: _selections,
                     onPressed: (int index) {
@@ -300,7 +317,8 @@ class _ListEventState extends State<ListEvent> {
                       .contains('No hay conexión a Internet')) {
                     return noInternet();
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return noEvents("No se encontraron Eventos");
+                    return noEvents(
+                        "No se encontraron Eventos", Icons.search_off);
                   } else {
                     return _buildEventsList(snapshot.data!);
                   }
