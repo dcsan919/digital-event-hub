@@ -1,3 +1,4 @@
+import 'package:deh_client/UI/widgets/noEvents.dart';
 import 'package:deh_client/models/comentarios.dart';
 import 'package:deh_client/models/usuario.dart';
 import 'package:deh_client/repositories/comentarios_repository.dart';
@@ -150,7 +151,8 @@ class _ComentariosState extends State<Comentarios> {
               } else if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('No hay comentarios disponibles'));
+                return Center(
+                    child: noEvents("No hay comentarios", Icons.comment));
               } else {
                 final comentariosYUsuarios = snapshot.data!;
                 return _buildComentariosList(comentariosYUsuarios);
@@ -268,7 +270,7 @@ class _ComentariosState extends State<Comentarios> {
 
   Widget _buildComentario(Comentario comentario, Usuario usuario) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[900],
@@ -276,17 +278,15 @@ class _ComentariosState extends State<Comentarios> {
         ),
         child: Row(
           children: [
-            SizedBox(
-              width: 8,
-            ),
+            SizedBox(width: 8),
             ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(100)),
               child:
                   usuario.fotoPerfil != null && usuario.fotoPerfil!.isNotEmpty
                       ? Image.network(
                           usuario.fotoPerfil!,
-                          width: 40,
-                          height: 40,
+                          width: 35,
+                          height: 35,
                           fit: BoxFit.cover,
                         )
                       : const Icon(
@@ -300,7 +300,9 @@ class _ComentariosState extends State<Comentarios> {
                 title: Text(
                   '${comentario.comentario}',
                   style:
-                      GoogleFonts.montserrat(color: Colors.white, fontSize: 15),
+                      GoogleFonts.montserrat(color: Colors.white, fontSize: 14),
+                  overflow: TextOverflow
+                      .ellipsis, // Agrega elipsis para el desbordamiento de texto
                 ),
                 subtitle: Text(
                   'Por: ${comentario.usuarioNombre ?? 'Desconocido'}',
